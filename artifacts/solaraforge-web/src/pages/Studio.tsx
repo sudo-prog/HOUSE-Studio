@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,7 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Wand2, Plus, X, Leaf, Sun, Droplets, TreePine, Layers, AlertCircle } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Wand2, Plus, X, Leaf, Sun, Layers, AlertCircle, Upload, ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -30,14 +31,41 @@ export default function Studio() {
   const { toast } = useToast();
   const [description, setDescription] = useState("");
   const [imageUrls, setImageUrls] = useState<string[]>([""]);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [uploadPreviews, setUploadPreviews] = useState<string[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [spec, setSpec] = useState<SolaraSpec | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const addImageUrl = () => setImageUrls(prev => [...prev, ""]);
   const removeImageUrl = (i: number) => setImageUrls(prev => prev.filter((_, idx) => idx !== i));
   const updateImageUrl = (i: number, val: string) =>
     setImageUrls(prev => prev.map((u, idx) => (idx === i ? val : u)));
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+    const tooBig = files.filter(f => f.size > 5 * 1024 * 1024);
+    if (tooBig.length) {
+      toast({ title: "File too large", description: "Each image must be under 5 MB.", variant: "destructive" });
+      return;
+    }
+    setUploadedFiles(prev => [...prev, ...files]);
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = ev => {
+        setUploadPreviews(prev => [...prev, ev.target?.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const removeUpload = (i: number) => {
+    setUploadedFiles(prev => prev.filter((_, idx) => idx !== i));
+    setUploadPreviews(prev => prev.filter((_, idx) => idx !== i));
+  };
 
   const analyze = async () => {
     if (!description.trim()) {
@@ -99,28 +127,84 @@ export default function Studio() {
           />
 
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-muted-foreground">Inspiration Image URLs <span className="text-xs">(optional)</span></p>
-              <Button type="button" variant="ghost" size="sm" onClick={addImageUrl} data-testid="button-add-image-url">
-                <Plus className="h-4 w-4 mr-1" /> Add URL
-              </Button>
-            </div>
-            {imageUrls.map((url, i) => (
-              <div key={i} className="flex gap-2">
-                <Input
-                  data-testid={`input-image-url-${i}`}
-                  placeholder="https://example.com/inspiration.jpg"
-                  value={url}
-                  onChange={e => updateImageUrl(i, e.target.value)}
-                  className="bg-background/50"
+            <p className="text-sm font-medium text-muted-foreground">Inspiration Images <span className="text-xs">(optional)</span></p>
+            <Tabs defaultValue="upload" className="w-full">
+              <TabsList className="h-9 bg-muted/50">
+                <TabsTrigger value="upload" className="gap-1.5 text-xs">
+                  <Upload className="h-3.5 w-3.5" /> Upload Files
+                </TabsTrigger>
+                <TabsTrigger value="url" className="gap-1.5 text-xs">
+                  <ImageIcon className="h-3.5 w-3.5" /> Paste URLs
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="upload" className="mt-3 space-y-3">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={handleFileChange}
+                  data-testid="input-file-upload"
                 />
-                {imageUrls.length > 1 && (
-                  <Button type="button" variant="ghost" size="icon" onClick={() => removeImageUrl(i)} data-testid={`button-remove-image-url-${i}`}>
-                    <X className="h-4 w-4" />
-                  </Button>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => fileInputRef.current?.click()}
+                  onKeyDown={e => e.key === "Enter" && fileInputRef.current?.click()}
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border/60 bg-background/40 p-8 cursor-pointer",
+                    "hover:border-accent/50 hover:bg-accent/5 transition-colors text-center"
+                  )}
+                  data-testid="dropzone-upload"
+                >
+                  <Upload className="h-8 w-8 text-muted-foreground/50" />
+                  <p className="text-sm font-medium text-muted-foreground">Click to upload images</p>
+                  <p className="text-xs text-muted-foreground/60">PNG, JPG, WEBP — up to 5 MB each</p>
+                </div>
+                {uploadPreviews.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2">
+                    {uploadPreviews.map((src, i) => (
+                      <div key={i} className="relative group rounded-lg overflow-hidden border border-border/40 aspect-square bg-muted">
+                        <img src={src} alt={`Upload ${i + 1}`} className="w-full h-full object-cover" />
+                        <button
+                          onClick={() => removeUpload(i)}
+                          className="absolute top-1 right-1 w-5 h-5 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          data-testid={`button-remove-upload-${i}`}
+                        >
+                          <X className="h-3 w-3 text-white" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
-              </div>
-            ))}
+              </TabsContent>
+
+              <TabsContent value="url" className="mt-3 space-y-2">
+                <div className="flex justify-end">
+                  <Button type="button" variant="ghost" size="sm" onClick={addImageUrl} data-testid="button-add-image-url">
+                    <Plus className="h-4 w-4 mr-1" /> Add URL
+                  </Button>
+                </div>
+                {imageUrls.map((url, i) => (
+                  <div key={i} className="flex gap-2">
+                    <Input
+                      data-testid={`input-image-url-${i}`}
+                      placeholder="https://example.com/inspiration.jpg"
+                      value={url}
+                      onChange={e => updateImageUrl(i, e.target.value)}
+                      className="bg-background/50"
+                    />
+                    {imageUrls.length > 1 && (
+                      <Button type="button" variant="ghost" size="icon" onClick={() => removeImageUrl(i)} data-testid={`button-remove-image-url-${i}`}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </TabsContent>
+            </Tabs>
           </div>
 
           <Button
@@ -216,7 +300,7 @@ export default function Studio() {
             {[
               { label: "Est. Carbon", value: `${(spec.estimatedCarbon / 1000).toFixed(1)}t CO₂e`, icon: Leaf, color: spec.estimatedCarbon < 10000 ? "text-green-600" : "text-orange-500" },
               { label: "Floor Area", value: spec.parametricHints.floorAreaSqm ? `${spec.parametricHints.floorAreaSqm} m²` : "—", icon: Layers, color: "text-primary" },
-              { label: "Stories", value: spec.parametricHints.stories ?? "—", icon: TreePine, color: "text-primary" },
+              { label: "Stories", value: spec.parametricHints.stories ?? "—", icon: Layers, color: "text-primary" },
               { label: "Roof Type", value: spec.parametricHints.roofType ?? "—", icon: Sun, color: "text-accent" },
             ].map((m, i) => (
               <Card key={i} className="border-border/50 bg-card/50">

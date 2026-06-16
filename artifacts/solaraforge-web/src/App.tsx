@@ -10,6 +10,7 @@ import MaterialsLibrary from "@/pages/MaterialsLibrary";
 import Studio from "@/pages/Studio";
 import About from "@/pages/About";
 import { Sidebar, MobileNav } from "@/components/layout/Navigation";
+import { AIDrawerProvider, AIDrawerTrigger } from "@/components/chat/AIDrawer";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,7 +48,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
+          <AIDrawerProvider>
+            <Router />
+            <AIDrawerTrigger />
+          </AIDrawerProvider>
         </WouterRouter>
         <Toaster />
       </TooltipProvider>
