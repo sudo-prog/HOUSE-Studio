@@ -8,14 +8,17 @@ import {
   Info,
   Leaf, 
   Menu,
+  Wrench,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: Home },
   { href: "/projects", label: "Projects", icon: TreePine },
+  { href: "/tools", label: "Toolkit", icon: Wrench, badge: "5" },
   { href: "/materials", label: "Materials", icon: Database },
   { href: "/studio", label: "Studio", icon: Wand2 },
   { href: "/about", label: "About", icon: Info },
@@ -50,7 +53,12 @@ export function Sidebar() {
               )}
             >
               <item.icon className="mr-3 h-5 w-5" />
-              {item.label}
+              <span className="flex-1">{item.label}</span>
+              {"badge" in item && item.badge && (
+                <Badge className="ml-auto h-5 px-1.5 text-[10px] bg-accent/20 text-accent border-accent/30">
+                  {item.badge}
+                </Badge>
+              )}
             </Link>
           ))}
         </nav>

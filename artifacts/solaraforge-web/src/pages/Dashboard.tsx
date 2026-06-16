@@ -3,13 +3,16 @@ import { ProjectCard, ProjectSkeleton } from "@/components/projects/ProjectCard"
 import { MaterialCard, MaterialSkeleton } from "@/components/materials/MaterialCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Leaf, Sun, Droplets, TreePine, ArrowRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Leaf, Sun, Droplets, TreePine, ArrowRight, Wrench, Wand2, Sparkles } from "lucide-react";
 import { Link } from "wouter";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { NewProjectDialog } from "@/components/projects/NewProjectDialog";
+import { useState } from "react";
+import ProjectWizard from "@/components/wizard/ProjectWizard";
 import { cn } from "@/lib/utils";
 
 export default function Dashboard() {
+  const [wizardOpen, setWizardOpen] = useState(false);
   const { data: projects, isLoading: projectsLoading } = useListProjects();
   const { data: featuredMaterials, isLoading: materialsLoading } = useGetFeaturedMaterials();
   const { data: stats, isLoading: statsLoading } = useGetProjectStats();
@@ -34,15 +37,17 @@ export default function Dashboard() {
             Harness nature's intelligence with SolaraForge AI to build habitats that heal the Earth.
           </p>
           <div className="flex flex-wrap gap-4 pt-4">
-            <NewProjectDialog trigger={
-              <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 rounded-full px-8 shadow-xl hover:shadow-accent/20 transition-all font-bold">
-                <Plus className="mr-2 h-5 w-5" />
-                New Project
-              </Button>
-            } />
-            <Link href="/materials">
+            <Button
+              size="lg"
+              onClick={() => setWizardOpen(true)}
+              className="bg-accent text-accent-foreground hover:bg-accent/90 rounded-full px-8 shadow-xl hover:shadow-accent/20 transition-all font-bold"
+            >
+              <Sparkles className="mr-2 h-5 w-5" />
+              Start New Project
+            </Button>
+            <Link href="/tools">
               <Button size="lg" variant="outline" className="rounded-full px-8 border-primary-foreground/30 hover:bg-white/10 text-white">
-                Explore Materials
+                <Wrench className="mr-2 h-4 w-4" /> Design Toolkit
               </Button>
             </Link>
           </div>
@@ -128,9 +133,7 @@ export default function Dashboard() {
                 <h3 className="text-lg font-bold">No projects yet</h3>
                 <p className="text-muted-foreground">Begin your regeneration journey today.</p>
               </div>
-              <NewProjectDialog trigger={
-                <Button>Start Your First Habitat</Button>
-              } />
+              <Button onClick={() => setWizardOpen(true)}>Start Your First Habitat</Button>
             </CardContent>
           </Card>
         ) : (
@@ -142,22 +145,49 @@ export default function Dashboard() {
         )}
       </section>
 
+      {/* Quick-access toolkit strip */}
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="font-serif text-xl font-bold">Design Toolkit</h2>
+          <Link href="/tools">
+            <Button variant="ghost" size="sm" className="text-primary text-xs">
+              All Tools <ArrowRight className="ml-1 h-3 w-3" />
+            </Button>
+          </Link>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          {[
+            { label: "Solar Designer", emoji: "☀", desc: "Panel count & yield", href: "/tools" },
+            { label: "Materials Estimator", emoji: "🧱", desc: "Cost & carbon", href: "/tools" },
+            { label: "Rainwater Harvester", emoji: "💧", desc: "Tank sizing", href: "/tools" },
+            { label: "Insulation Wizard", emoji: "🌡", desc: "R-value by climate", href: "/tools" },
+            { label: "Budget Planner", emoji: "💰", desc: "Line-item tracker", href: "/tools" },
+          ].map(tool => (
+            <Link key={tool.label} href={tool.href}>
+              <Card className="border-border/50 bg-card/50 hover:border-primary/30 hover:bg-card/80 transition-all cursor-pointer h-full">
+                <CardContent className="p-4 text-center space-y-1">
+                  <p className="text-2xl">{tool.emoji}</p>
+                  <p className="text-xs font-bold leading-tight">{tool.label}</p>
+                  <p className="text-[10px] text-muted-foreground">{tool.desc}</p>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </section>
+
       {/* Floating Action Button */}
       <div className="fixed bottom-20 md:bottom-8 right-6 z-50">
-        <NewProjectDialog trigger={
-          <Button size="icon" className="w-14 h-14 rounded-full bg-accent text-accent-foreground shadow-2xl hover:scale-110 transition-transform">
-            <Plus className="w-6 h-6" />
-          </Button>
-        } />
+        <Button
+          size="icon"
+          onClick={() => setWizardOpen(true)}
+          className="w-14 h-14 rounded-full bg-accent text-accent-foreground shadow-2xl hover:scale-110 transition-transform"
+        >
+          <Plus className="w-6 h-6" />
+        </Button>
       </div>
-    </div>
-  );
-}
 
-function Badge({ children, className }: { children: React.ReactNode, className?: string }) {
-  return (
-    <span className={cn("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2", className)}>
-      {children}
-    </span>
+      <ProjectWizard open={wizardOpen} onOpenChange={setWizardOpen} />
+    </div>
   );
 }

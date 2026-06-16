@@ -9,6 +9,7 @@ import ProjectDetail from "@/pages/ProjectDetail";
 import MaterialsLibrary from "@/pages/MaterialsLibrary";
 import Studio from "@/pages/Studio";
 import About from "@/pages/About";
+import Tools from "@/pages/Tools";
 import { Sidebar, MobileNav } from "@/components/layout/Navigation";
 import { AIDrawerProvider, AIDrawerTrigger } from "@/components/chat/AIDrawer";
 
@@ -33,6 +34,7 @@ function Router() {
             <Route path="/projects" component={ProjectsList} />
             <Route path="/projects/:id" component={ProjectDetail} />
             <Route path="/materials" component={MaterialsLibrary} />
+            <Route path="/tools" component={Tools} />
             <Route path="/studio" component={Studio} />
             <Route path="/about" component={About} />
             <Route component={NotFound} />
