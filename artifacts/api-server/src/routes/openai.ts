@@ -24,9 +24,8 @@ Your expertise spans:
 - Embodied carbon, lifecycle analysis, and circular design
 - Living roofs, rainwater harvesting, greywater systems
 - Off-grid energy (solar, wind, micro-hydro) and smart home integration
-- WCAG-accessible, inclusive design for diverse communities
 
-Speak with warmth and precision. Inspire while being practical. Always ground suggestions in real-world feasibility. When relevant, suggest specific materials from the SolaraForge library (hempcrete, CLT, rammed earth, bamboo, recycled steel, mycelium, adobe, straw bale, cork, recycled glass). Reference climate, biome, and local conditions when giving advice.`;
+Speak with warmth and precision. Inspire while being practical. When relevant, suggest specific materials from the SolaraForge library (hempcrete, CLT, rammed earth, bamboo, recycled steel, mycelium, adobe, straw bale, cork). Reference climate, biome, and local conditions when giving advice.`;
 
 router.get("/openai/conversations", async (_req, res) => {
   try {
@@ -34,9 +33,9 @@ router.get("/openai/conversations", async (_req, res) => {
       .select()
       .from(conversationsTable)
       .orderBy(asc(conversationsTable.createdAt));
-    res.json(conversations);
+    return res.json(conversations);
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch conversations" });
+    return res.status(500).json({ error: "Failed to fetch conversations" });
   }
 });
 
@@ -50,9 +49,9 @@ router.post("/openai/conversations", async (req, res) => {
       .insert(conversationsTable)
       .values({ title: parsed.data.title })
       .returning();
-    res.status(201).json(conv);
+    return res.status(201).json(conv);
   } catch (err) {
-    res.status(500).json({ error: "Failed to create conversation" });
+    return res.status(500).json({ error: "Failed to create conversation" });
   }
 });
 
@@ -71,9 +70,9 @@ router.get("/openai/conversations/:id", async (req, res) => {
       .where(eq(messagesTable.conversationId, id))
       .orderBy(asc(messagesTable.createdAt));
 
-    res.json({ ...conv, messages: msgs });
+    return res.json({ ...conv, messages: msgs });
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch conversation" });
+    return res.status(500).json({ error: "Failed to fetch conversation" });
   }
 });
 
@@ -82,9 +81,9 @@ router.delete("/openai/conversations/:id", async (req, res) => {
     const { id } = DeleteOpenaiConversationParams.parse(req.params);
     await db.delete(messagesTable).where(eq(messagesTable.conversationId, id));
     await db.delete(conversationsTable).where(eq(conversationsTable.id, id));
-    res.status(204).send();
+    return res.status(204).send();
   } catch (err) {
-    res.status(500).json({ error: "Failed to delete conversation" });
+    return res.status(500).json({ error: "Failed to delete conversation" });
   }
 });
 
@@ -96,9 +95,9 @@ router.get("/openai/conversations/:id/messages", async (req, res) => {
       .from(messagesTable)
       .where(eq(messagesTable.conversationId, id))
       .orderBy(asc(messagesTable.createdAt));
-    res.json(msgs);
+    return res.json(msgs);
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch messages" });
+    return res.status(500).json({ error: "Failed to fetch messages" });
   }
 });
 
@@ -142,7 +141,7 @@ router.post("/openai/conversations/:id/messages", async (req, res) => {
 
     let fullResponse = "";
     const stream = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+      model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
       max_completion_tokens: 2048,
       messages: chatMessages,
       stream: true,
@@ -164,10 +163,12 @@ router.post("/openai/conversations/:id/messages", async (req, res) => {
 
     res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
     res.end();
+    return;
   } catch (err) {
     console.error("Chat stream error:", err);
     res.write(`data: ${JSON.stringify({ error: "Stream failed" })}\n\n`);
     res.end();
+    return;
   }
 });
 

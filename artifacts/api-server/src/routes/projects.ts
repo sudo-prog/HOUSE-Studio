@@ -32,7 +32,7 @@ router.get("/projects/stats", async (_req, res) => {
       .orderBy(desc(projectsTable.createdAt))
       .limit(3);
 
-    res.json({
+    return res.json({
       totalProjects: Number(totals.totalProjects ?? 0),
       activeProjects: Number(activeResult[0]?.count ?? 0),
       totalCarbonSaved: Number(totals.totalCarbonSaved ?? 0),
@@ -40,7 +40,7 @@ router.get("/projects/stats", async (_req, res) => {
       recentProjects,
     });
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch stats" });
+    return res.status(500).json({ error: "Failed to fetch stats" });
   }
 });
 
@@ -50,9 +50,9 @@ router.get("/projects", async (_req, res) => {
       .select()
       .from(projectsTable)
       .orderBy(desc(projectsTable.createdAt));
-    res.json(projects);
+    return res.json(projects);
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch projects" });
+    return res.status(500).json({ error: "Failed to fetch projects" });
   }
 });
 
@@ -66,9 +66,9 @@ router.post("/projects", async (req, res) => {
       .insert(projectsTable)
       .values(parsed.data)
       .returning();
-    res.status(201).json(project);
+    return res.status(201).json(project);
   } catch (err) {
-    res.status(500).json({ error: "Failed to create project" });
+    return res.status(500).json({ error: "Failed to create project" });
   }
 });
 
@@ -80,9 +80,9 @@ router.get("/projects/:id", async (req, res) => {
       .from(projectsTable)
       .where(eq(projectsTable.id, id));
     if (!project) return res.status(404).json({ error: "Project not found" });
-    res.json(project);
+    return res.json(project);
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch project" });
+    return res.status(500).json({ error: "Failed to fetch project" });
   }
 });
 
@@ -99,9 +99,9 @@ router.patch("/projects/:id", async (req, res) => {
       .where(eq(projectsTable.id, id))
       .returning();
     if (!project) return res.status(404).json({ error: "Project not found" });
-    res.json(project);
+    return res.json(project);
   } catch (err) {
-    res.status(500).json({ error: "Failed to update project" });
+    return res.status(500).json({ error: "Failed to update project" });
   }
 });
 
@@ -109,9 +109,9 @@ router.delete("/projects/:id", async (req, res) => {
   try {
     const { id } = DeleteProjectParams.parse(req.params);
     await db.delete(projectsTable).where(eq(projectsTable.id, id));
-    res.status(204).send();
+    return res.status(204).send();
   } catch (err) {
-    res.status(500).json({ error: "Failed to delete project" });
+    return res.status(500).json({ error: "Failed to delete project" });
   }
 });
 

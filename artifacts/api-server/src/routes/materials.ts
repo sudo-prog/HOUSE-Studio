@@ -11,11 +11,10 @@ router.get("/materials/featured", async (_req, res) => {
     const materials = await db
       .select()
       .from(materialsTable)
-      .where(eq(materialsTable.isFeatured, true))
-      .limit(6);
-    res.json(materials);
+      .where(eq(materialsTable.isFeatured, true));
+    return res.json(materials);
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch featured materials" });
+    return res.status(500).json({ error: "Failed to fetch featured materials" });
   }
 });
 
@@ -26,16 +25,15 @@ router.get("/materials", async (req, res) => {
 
     const conditions = [];
     if (category) conditions.push(eq(materialsTable.category, category));
-    if (maxCarbon !== undefined)
-      conditions.push(lte(materialsTable.embodiedCarbon, maxCarbon));
+    if (maxCarbon !== undefined) conditions.push(lte(materialsTable.embodiedCarbon, maxCarbon));
 
     const materials = await db
       .select()
       .from(materialsTable)
       .where(conditions.length ? and(...conditions) : undefined);
-    res.json(materials);
+    return res.json(materials);
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch materials" });
+    return res.status(500).json({ error: "Failed to fetch materials" });
   }
 });
 
@@ -47,9 +45,9 @@ router.get("/materials/:id", async (req, res) => {
       .from(materialsTable)
       .where(eq(materialsTable.id, id));
     if (!material) return res.status(404).json({ error: "Material not found" });
-    res.json(material);
+    return res.json(material);
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch material" });
+    return res.status(500).json({ error: "Failed to fetch material" });
   }
 });
 

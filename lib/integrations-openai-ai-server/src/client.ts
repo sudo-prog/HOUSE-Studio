@@ -14,11 +14,11 @@ export const openai = new Proxy({} as OpenAI, {
 
       if (!baseURL || !apiKey) {
         throw new Error(
-          "AI credentials not configured. Set OPENAI_BASE_URL and OPENAI_API_KEY. For local LLMs (Ollama), use e.g. http://localhost:11434/v1 and 'ollama' as key.",
+          "AI credentials not configured. Set OPENAI_BASE_URL and OPENAI_API_KEY.",
         );
       }
       _client = new OpenAI({ apiKey, baseURL });
     }
-    return (_client as Record<string | symbol, unknown>)[prop];
+    return Reflect.get(_client, prop);
   },
 });
