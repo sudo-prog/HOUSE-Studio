@@ -1,0 +1,3 @@
+- [DB template table names](db-template-names.md) — conversations/messages tables export as `conversations` and `messages`, not `conversationsTable`/`messagesTable`
+- [Lazy AI client pattern](lazy-ai-client.md) — AI server client must be a Proxy/lazy getter; eager validation at import time crashes the API server on startup if env vars aren't set
+- [Zod schema naming](zod-schema-naming.md) — generated Zod query schemas use QueryParams suffix (e.g. ListMaterialsQueryParams not ListMaterialsParams); always verify names before using
