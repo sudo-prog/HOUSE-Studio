@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "SolaraForge"
+version = "1.0.0"
+id = "artifacts/solaraforge-web"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22194
+
+[services.development]
+run = "pnpm --filter @workspace/solaraforge-web run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/solaraforge-web", "run", "build" ]
+publicDir = "artifacts/solaraforge-web/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22194"
+BASE_PATH = "/"
