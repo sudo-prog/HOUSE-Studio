@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+import { VitePWA } from "vite-plugin-pwa";
 
 const rawPort = process.env.PORT;
 
@@ -32,6 +33,41 @@ export default defineConfig({
     react(),
     tailwindcss(),
     runtimeErrorOverlay(),
+    VitePWA({
+      registerType: "autoUpdate",
+      base: basePath,
+      manifest: {
+        name: "SolaraForge",
+        short_name: "SolaraForge",
+        description: "AI-powered regenerative habitat designer",
+        start_url: basePath,
+        display: "standalone",
+        background_color: "#f5f0e8",
+        theme_color: "#1a3a2a",
+        orientation: "portrait-primary",
+        icons: [
+          { src: `${basePath}icons/icon-192.svg`, sizes: "192x192", type: "image/svg+xml" },
+          { src: `${basePath}icons/icon-512.svg`, sizes: "512x512", type: "image/svg+xml" },
+          { src: `${basePath}favicon.svg`, sizes: "any", type: "image/svg+xml", purpose: "any maskable" },
+        ],
+      },
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        navigateFallback: `${basePath}index.html`,
+        navigateFallbackDenylist: [/^\/api/],
+        runtimeCaching: [
+          {
+            urlPattern: /^\/api\/materials/,
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "materials-api",
+              expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 },
+            },
+          },
+        ],
+      },
+      devOptions: { enabled: false },
+    }),
     ...(process.env.NODE_ENV !== "production" &&
     process.env.REPL_ID !== undefined
       ? [

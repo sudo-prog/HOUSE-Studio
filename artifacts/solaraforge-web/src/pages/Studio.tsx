@@ -78,11 +78,21 @@ export default function Studio() {
 
     try {
       const validUrls = imageUrls.filter(u => u.trim());
-      const res = await fetch("/api/moodboard/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description: description.trim(), imageUrls: validUrls }),
-      });
+      let res: Response;
+
+      if (uploadedFiles.length > 0) {
+        const form = new FormData();
+        form.append("description", description.trim());
+        if (validUrls.length) form.append("imageUrls", JSON.stringify(validUrls));
+        uploadedFiles.forEach(file => form.append("images", file));
+        res = await fetch("/api/moodboard/analyze", { method: "POST", body: form });
+      } else {
+        res = await fetch("/api/moodboard/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ description: description.trim(), imageUrls: validUrls }),
+        });
+      }
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));

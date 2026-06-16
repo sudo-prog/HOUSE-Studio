@@ -1,0 +1,6 @@
+<svg width='192' height='192' viewBox='0 0 192 192' xmlns='http://www.w3.org/2000/svg'>
+  <circle cx='96' cy='96' r='96' fill='#1a3a2a'/>
+  <path d='M96 42 L103 69 L131 61 L113 85 L138 96 L113 107 L131 131 L103 123 L96 150 L89 123 L61 131 L79 107 L54 96 L79 85 L61 61 L89 69 Z' fill='#e8a020' opacity='0.9'/>
+  <ellipse cx='96' cy='96' rx='24' ry='36' fill='#2a5a42' transform='rotate(-15 96 96)'/>
+  <path d='M96 66 Q100 96 96 126' stroke='#e8a020' stroke-width='3' stroke-linecap='round' fill='none' opacity='0.7'/>
+</svg>
