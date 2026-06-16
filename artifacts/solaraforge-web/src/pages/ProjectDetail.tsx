@@ -294,12 +294,20 @@ function AICollaborator({ project }: { project: any }) {
         
         for (const line of lines) {
           if (line.startsWith('data: ')) {
-            const content = line.slice(6);
-            if (content === '[DONE]') break;
-            accumulatedContent += content;
-            setMessages(prev => prev.map(m => 
-              m.id === assistantMsgId ? { ...m, content: accumulatedContent } : m
-            ));
+            const raw = line.slice(6).trim();
+            if (raw === '[DONE]') break;
+            try {
+              const payload = JSON.parse(raw);
+              if (payload.done) break;
+              if (payload.content) {
+                accumulatedContent += payload.content;
+                setMessages(prev => prev.map(m =>
+                  m.id === assistantMsgId ? { ...m, content: accumulatedContent } : m
+                ));
+              }
+            } catch {
+              // non-JSON line — skip
+            }
           }
         }
       }

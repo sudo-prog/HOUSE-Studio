@@ -7,6 +7,8 @@ import Dashboard from "@/pages/Dashboard";
 import ProjectsList from "@/pages/ProjectsList";
 import ProjectDetail from "@/pages/ProjectDetail";
 import MaterialsLibrary from "@/pages/MaterialsLibrary";
+import Studio from "@/pages/Studio";
+import About from "@/pages/About";
 import { Sidebar, MobileNav } from "@/components/layout/Navigation";
 
 const queryClient = new QueryClient({
@@ -30,6 +32,8 @@ function Router() {
             <Route path="/projects" component={ProjectsList} />
             <Route path="/projects/:id" component={ProjectDetail} />
             <Route path="/materials" component={MaterialsLibrary} />
+            <Route path="/studio" component={Studio} />
+            <Route path="/about" component={About} />
             <Route component={NotFound} />
           </Switch>
         </main>

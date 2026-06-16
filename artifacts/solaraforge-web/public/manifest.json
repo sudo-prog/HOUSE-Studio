@@ -1,0 +1,20 @@
+{
+  "name": "SolaraForge",
+  "short_name": "SolaraForge",
+  "description": "Design regenerative habitats with AI — solarpunk home design for a carbon-negative future.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4ede0",
+  "theme_color": "#1a3a2a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "lang": "en"
+}

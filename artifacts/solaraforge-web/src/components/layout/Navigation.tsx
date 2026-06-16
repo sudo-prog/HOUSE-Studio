@@ -4,10 +4,10 @@ import {
   Home, 
   TreePine, 
   Database, 
-  MessageCircle, 
+  Wand2,
+  Info,
   Leaf, 
   Menu,
-  Plus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -17,6 +17,8 @@ const navItems = [
   { href: "/", label: "Dashboard", icon: Home },
   { href: "/projects", label: "Projects", icon: TreePine },
   { href: "/materials", label: "Materials", icon: Database },
+  { href: "/studio", label: "Studio", icon: Wand2 },
+  { href: "/about", label: "About", icon: Info },
 ];
 
 export function Sidebar() {
