@@ -4,7 +4,7 @@
   "description": "Design regenerative habitats with AI — solarpunk home design for a carbon-negative future.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f4ede0",
+  "background_color": "#f5f0e8",
   "theme_color": "#1a3a2a",
   "orientation": "portrait-primary",
   "icons": [
@@ -13,8 +13,61 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
-  "categories": ["productivity", "utilities"],
-  "lang": "en"
+  "categories": ["productivity", "utilities", "lifestyle"],
+  "lang": "en",
+  "dir": "ltr",
+  "shortcuts": [
+    {
+      "name": "New Project",
+      "short_name": "New Project",
+      "description": "Start a new regenerative habitat project",
+      "url": "/projects",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Moodboard Studio",
+      "short_name": "Studio",
+      "description": "Generate a SolaraSpec from your vision",
+      "url": "/studio",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Design Toolkit",
+      "short_name": "Toolkit",
+      "description": "5 professional design calculators",
+      "url": "/tools",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Materials Library",
+      "short_name": "Materials",
+      "description": "Browse sustainable building materials",
+      "url": "/materials",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/opengraph.jpg",
+      "sizes": "1200x630",
+      "type": "image/jpeg",
+      "label": "SolaraForge Dashboard — AI-powered regenerative habitat design"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
 }

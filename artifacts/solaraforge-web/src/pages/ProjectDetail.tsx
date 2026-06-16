@@ -1,6 +1,7 @@
 import { 
   useGetProject, 
-  useUpdateProject, 
+  useUpdateProject,
+  useDeleteProject,
   getListProjectsQueryKey, 
   getGetProjectQueryKey,
   useListMaterials,
@@ -25,16 +26,27 @@ import {
   Trash2,
   Edit2,
   Boxes,
-  ExternalLink
+  ExternalLink,
+  CheckSquare
 } from "lucide-react";
+import PhaseTimeline from "@/components/projects/PhaseTimeline";
+import DesignChecklist from "@/components/projects/DesignChecklist";
+import { ExportSpecButton } from "@/components/projects/ExportSpec";
+import EditProjectDialog from "@/components/projects/EditProjectDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MaterialCard } from "@/components/materials/MaterialCard";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { MaterialCard, getProjectMaterials, removeMaterialFromProject } from "@/components/materials/MaterialCard";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -43,12 +55,36 @@ import { cn } from "@/lib/utils";
 export default function ProjectDetail() {
   const { id } = useParams();
   const projectId = Number(id);
+  const [, navigate] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const deleteProject = useDeleteProject();
   const { data: project, isLoading } = useGetProject(projectId, { 
     query: { enabled: !!projectId, queryKey: getGetProjectQueryKey(projectId) } 
   });
+
+  const handleDelete = async () => {
+    try {
+      await deleteProject.mutateAsync({ id: projectId });
+      queryClient.invalidateQueries({ queryKey: getListProjectsQueryKey() });
+      toast({ title: "Project deleted", description: project?.name });
+      navigate("/projects");
+    } catch {
+      toast({ title: "Failed to delete project", variant: "destructive" });
+    }
+  };
   
   if (isLoading) return <ProjectDetailSkeleton />;
-  if (!project) return <div>Project not found</div>;
+  if (!project) return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center">
+      <span className="text-6xl">🌿</span>
+      <h2 className="font-serif text-2xl font-bold">Project not found</h2>
+      <p className="text-muted-foreground">This habitat may have been deleted or doesn't exist.</p>
+      <Button onClick={() => navigate("/projects")} className="bg-primary text-primary-foreground">Back to Projects</Button>
+    </div>
+  );
 
   return (
     <div className="space-y-6 pb-20 md:pb-8">
@@ -57,7 +93,7 @@ export default function ProjectDetail() {
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <h1 className="font-serif text-4xl font-bold">{project.name}</h1>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditOpen(true)} title="Edit project">
               <Edit2 className="h-4 w-4" />
             </Button>
           </div>
@@ -71,10 +107,22 @@ export default function ProjectDetail() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="border-border/50">Export Spec</Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 text-destructive/60 hover:text-destructive hover:bg-destructive/10"
+            onClick={() => setDeleteOpen(true)}
+            title="Delete project"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+          <ExportSpecButton project={project} />
           <Button className="bg-accent text-accent-foreground hover:bg-accent/90">Build View</Button>
         </div>
       </div>
+
+      {/* Phase Timeline — always visible */}
+      <PhaseTimeline projectId={project.id} currentPhase={project.phase ?? "concept"} />
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="bg-card/50 border border-border/50 h-11 p-1">
@@ -86,6 +134,9 @@ export default function ProjectDetail() {
           </TabsTrigger>
           <TabsTrigger value="materials" className="gap-2">
             <Database className="h-4 w-4" /> Materials
+          </TabsTrigger>
+          <TabsTrigger value="checklist" className="gap-2">
+            <CheckSquare className="h-4 w-4" /> Checklist
           </TabsTrigger>
           <TabsTrigger value="ai" className="gap-2">
             <MessageCircle className="h-4 w-4" /> AI Collaborator
@@ -137,24 +188,7 @@ export default function ProjectDetail() {
               </CardContent>
             </Card>
 
-            <Card className="border-border/50 bg-card/50">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="font-serif text-lg">Selected Materials</CardTitle>
-                <Link href="/materials">
-                  <Button variant="ghost" size="sm" className="h-7 text-primary text-xs">
-                    Browse →
-                  </Button>
-                </Link>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex flex-col items-center justify-center py-8 text-center bg-muted/30 rounded-lg border border-dashed">
-                  <Database className="h-8 w-8 text-muted-foreground mb-2" />
-                  <p className="text-xs text-muted-foreground px-4">
-                    No materials selected for this project yet.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <SavedMaterialsPanel projectId={project.id} />
           </div>
         </TabsContent>
 
@@ -166,11 +200,105 @@ export default function ProjectDetail() {
           <MaterialsBrowser />
         </TabsContent>
 
+        <TabsContent value="checklist" className="mt-0">
+          <DesignChecklist projectId={project.id} currentPhase={project.phase ?? "concept"} />
+        </TabsContent>
+
         <TabsContent value="ai" className="mt-0">
           <AICollaborator project={project} />
         </TabsContent>
       </Tabs>
+
+      <EditProjectDialog project={project} open={editOpen} onOpenChange={setEditOpen} />
+
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete "{project.name}"?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the project and all its checklist data. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete Project
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
+  );
+}
+
+function SavedMaterialsPanel({ projectId }: { projectId: number }) {
+  const { data: allMaterials } = useListMaterials({});
+  const [savedIds, setSavedIds] = useState<number[]>(() => getProjectMaterials(projectId));
+
+  const savedMaterials = (allMaterials ?? []).filter(m => savedIds.includes(m.id));
+
+  const remove = (materialId: number) => {
+    removeMaterialFromProject(projectId, materialId);
+    setSavedIds(prev => prev.filter(id => id !== materialId));
+  };
+
+  return (
+    <Card className="border-border/50 bg-card/50">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="font-serif text-lg">Selected Materials</CardTitle>
+        <Link href="/materials">
+          <Button variant="ghost" size="sm" className="h-7 text-primary text-xs">
+            Browse →
+          </Button>
+        </Link>
+      </CardHeader>
+      <CardContent>
+        {savedMaterials.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-8 text-center bg-muted/30 rounded-lg border border-dashed">
+            <Database className="h-8 w-8 text-muted-foreground mb-2" />
+            <p className="text-xs text-muted-foreground px-4">
+              No materials saved yet. Browse the library and click <strong>"Save to Project"</strong> on any material.
+            </p>
+            <Link href="/materials" className="mt-3">
+              <Button variant="outline" size="sm" className="text-xs">Open Materials Library</Button>
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {savedMaterials.map(m => {
+              const isNeg = m.embodiedCarbon < 0;
+              return (
+                <div key={m.id} className="flex items-center gap-3 p-2.5 rounded-lg border border-border/30 bg-background/40 group">
+                  {m.imageUrl && (
+                    <img src={m.imageUrl} alt={m.name} className="w-10 h-10 rounded-md object-cover shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate">{m.name}</p>
+                    <p className="text-[10px] text-muted-foreground">{m.category}</p>
+                  </div>
+                  <Badge variant="outline" className={cn("text-[9px] shrink-0", isNeg ? "text-green-700 border-green-200" : "text-amber-700 border-amber-200")}>
+                    {m.embodiedCarbon} kg
+                  </Badge>
+                  <button
+                    onClick={() => remove(m.id)}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-red-500 shrink-0"
+                    title="Remove"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              );
+            })}
+            <p className="text-[10px] text-muted-foreground text-center pt-1">
+              {savedMaterials.length} material{savedMaterials.length !== 1 ? "s" : ""} · Open any material card to add more
+            </p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

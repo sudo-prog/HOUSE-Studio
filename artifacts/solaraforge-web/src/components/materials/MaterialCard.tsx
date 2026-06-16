@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Material } from "@workspace/api-client-react";
-import { Leaf, Info } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Material, useListProjects } from "@workspace/api-client-react";
+import { Leaf, Info, Bookmark, BookmarkCheck, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { 
   Dialog, 
@@ -10,7 +12,105 @@ import {
   DialogTitle, 
   DialogTrigger 
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 
+// --- localStorage helpers for project ↔ material associations ---
+function getSavedMaterials(projectId: number): number[] {
+  try {
+    return JSON.parse(localStorage.getItem(`project-materials-${projectId}`) ?? "[]");
+  } catch {
+    return [];
+  }
+}
+
+export function saveMaterialToProject(projectId: number, materialId: number): void {
+  const current = getSavedMaterials(projectId);
+  if (!current.includes(materialId)) {
+    localStorage.setItem(`project-materials-${projectId}`, JSON.stringify([...current, materialId]));
+  }
+}
+
+export function removeMaterialFromProject(projectId: number, materialId: number): void {
+  const current = getSavedMaterials(projectId);
+  localStorage.setItem(`project-materials-${projectId}`, JSON.stringify(current.filter(id => id !== materialId)));
+}
+
+export function getProjectMaterials(projectId: number): number[] {
+  return getSavedMaterials(projectId);
+}
+
+// --- Save to Project button (inside dialog) ---
+function SaveToProjectButton({ materialId, materialName }: { materialId: number; materialName: string }) {
+  const { data: projects } = useListProjects();
+  const { toast } = useToast();
+  const [savedProjects, setSavedProjects] = useState<number[]>(() => {
+    return (projects ?? []).filter(p => getSavedMaterials(p.id).includes(materialId)).map(p => p.id);
+  });
+
+  const handleSave = (projectId: number, projectName: string) => {
+    if (savedProjects.includes(projectId)) {
+      removeMaterialFromProject(projectId, materialId);
+      setSavedProjects(prev => prev.filter(id => id !== projectId));
+      toast({ title: `Removed from "${projectName}"`, description: materialName });
+    } else {
+      saveMaterialToProject(projectId, materialId);
+      setSavedProjects(prev => [...prev, projectId]);
+      toast({ title: `Saved to "${projectName}"`, description: materialName });
+    }
+  };
+
+  if (!projects?.length) return null;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className={cn(
+            "gap-1.5 w-full mt-4",
+            savedProjects.length > 0 ? "border-green-300 text-green-700 bg-green-50 hover:bg-green-100" : ""
+          )}
+        >
+          {savedProjects.length > 0
+            ? <><BookmarkCheck className="h-4 w-4" /> Saved to {savedProjects.length} project{savedProjects.length > 1 ? "s" : ""}</>
+            : <><Bookmark className="h-4 w-4" /> Save to Project</>}
+          <ChevronDown className="h-3 w-3 ml-auto" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuLabel className="text-xs">Your Projects</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {projects.map(p => {
+          const isSaved = savedProjects.includes(p.id);
+          return (
+            <DropdownMenuItem
+              key={p.id}
+              onClick={() => handleSave(p.id, p.name)}
+              className={cn("gap-2 cursor-pointer", isSaved ? "text-green-700" : "")}
+            >
+              {isSaved ? <BookmarkCheck className="h-4 w-4 shrink-0" /> : <Bookmark className="h-4 w-4 shrink-0" />}
+              <div className="min-w-0">
+                <p className="text-sm font-medium truncate">{p.name}</p>
+                <p className="text-[10px] text-muted-foreground capitalize">{p.biome ?? "Unknown biome"} · {p.phase}</p>
+              </div>
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+// --- Main card component ---
 interface MaterialCardProps {
   material: Material;
   showDetails?: boolean;
@@ -166,6 +266,12 @@ export function MaterialCard({ material, showDetails = false }: MaterialCardProp
                     </Badge>
                   ))}
                 </div>
+              </div>
+
+              {/* Save to Project */}
+              <div className="border-t border-border/30 pt-4">
+                <p className="text-xs font-semibold text-muted-foreground mb-1">Save this material to a project</p>
+                <SaveToProjectButton materialId={material.id} materialName={material.name} />
               </div>
             </div>
           </div>

@@ -145,6 +145,70 @@ export default function Dashboard() {
         )}
       </section>
 
+      {/* Your Impact Section */}
+      {(stats?.totalProjects ?? 0) > 0 && (
+        <section className="rounded-2xl border border-green-200/60 bg-gradient-to-br from-green-50/80 via-background to-primary/5 p-6 space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-green-600/10">
+              <Leaf className="h-5 w-5 text-green-600" />
+            </div>
+            <div>
+              <h2 className="font-serif text-xl font-bold text-foreground">Your Environmental Impact</h2>
+              <p className="text-xs text-muted-foreground">Aggregated across all your regenerative projects</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              {
+                emoji: "🌳",
+                label: "Trees Equivalent",
+                value: Math.round(Math.abs(totalCarbon) / 21).toLocaleString(),
+                desc: "Annual CO₂ absorbed by trees",
+                color: "text-green-700",
+              },
+              {
+                emoji: "🚗",
+                label: "Car Journeys Offset",
+                value: Math.round(Math.abs(totalCarbon) / 120).toLocaleString(),
+                desc: "Average car journeys eliminated",
+                color: "text-primary",
+              },
+              {
+                emoji: "💧",
+                label: "Water Harvested",
+                value: `${(totalWater / 1000).toFixed(1)}kL`,
+                desc: "Annual renewable water capacity",
+                color: "text-blue-600",
+              },
+              {
+                emoji: "☀",
+                label: "Solar Efficiency",
+                value: `${Number(avgSolarScore).toFixed(0)}%`,
+                desc: `Average across ${stats?.totalProjects ?? 0} project${(stats?.totalProjects ?? 0) !== 1 ? "s" : ""}`,
+                color: "text-amber-600",
+              },
+            ].map(item => (
+              <div key={item.label} className="text-center p-4 rounded-xl bg-white/60 border border-border/30 space-y-1">
+                <p className="text-2xl">{item.emoji}</p>
+                <p className={cn("text-xl font-bold font-serif", item.color)}>{item.value}</p>
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">{item.label}</p>
+                <p className="text-[10px] text-muted-foreground">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+          {totalCarbon >= 0 && (
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200/50 rounded-lg px-3 py-2">
+              💡 Your projects currently emit {totalCarbon.toFixed(0)} kg CO₂e. Switch wall systems to hempcrete or straw bale to go carbon-negative.
+            </p>
+          )}
+          {totalCarbon < 0 && (
+            <p className="text-xs text-green-700 bg-green-50/80 border border-green-200/50 rounded-lg px-3 py-2">
+              🌿 Your projects are <strong>carbon negative</strong> — they sequester more CO₂ than they emit. You're building a regenerative future.
+            </p>
+          )}
+        </section>
+      )}
+
       {/* Quick-access toolkit strip */}
       <section className="space-y-3">
         <div className="flex items-center justify-between">

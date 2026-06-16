@@ -2,8 +2,13 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Project } from "@workspace/api-client-react";
 import { Link } from "wouter";
-import { Leaf, Sun, Droplets, TreePine, Zap } from "lucide-react";
+import { Droplets } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const PHASE_ORDER = ["concept", "planning", "design", "build", "complete"];
+const PHASE_EMOJIS: Record<string, string> = {
+  concept: "💡", planning: "📐", design: "✏️", build: "🔨", complete: "🌿"
+};
 
 interface ProjectCardProps {
   project: Project;
@@ -88,12 +93,37 @@ export function ProjectCard({ project }: ProjectCardProps) {
             )}
           </div>
         </CardContent>
-        <CardFooter className="p-4 pt-0 flex justify-between items-center text-xs font-medium text-muted-foreground">
-          <span>{project.estimatedCost ? `$${project.estimatedCost.toLocaleString()}` : 'No estimate'}</span>
-          <span className="flex items-center gap-1">
-            <Droplets className="w-3 h-3" />
-            {project.waterHarvesting ?? 0}L
-          </span>
+        <CardFooter className="p-4 pt-0 space-y-3">
+          {/* Phase mini-stepper */}
+          <div className="w-full flex items-center gap-0.5">
+            {PHASE_ORDER.map((ph, i) => {
+              const currentIdx = PHASE_ORDER.indexOf(project.phase ?? "concept");
+              const isDone = i < currentIdx;
+              const isCurrent = i === currentIdx;
+              return (
+                <div key={ph} className="flex items-center flex-1 min-w-0" title={ph}>
+                  <div className={cn(
+                    "flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[9px] border transition-all",
+                    isDone ? "bg-green-500 border-green-500 text-white" :
+                    isCurrent ? "bg-accent border-accent text-accent-foreground font-bold" :
+                    "bg-muted border-border/40 text-muted-foreground/50"
+                  )}>
+                    {isDone ? "✓" : PHASE_EMOJIS[ph]}
+                  </div>
+                  {i < PHASE_ORDER.length - 1 && (
+                    <div className={cn("flex-1 h-px mx-0.5", i < currentIdx ? "bg-green-400" : "bg-border/40")} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex justify-between items-center text-xs font-medium text-muted-foreground w-full">
+            <span>{project.estimatedCost ? `$${project.estimatedCost.toLocaleString()}` : 'No estimate'}</span>
+            <span className="flex items-center gap-1">
+              <Droplets className="w-3 h-3" />
+              {project.waterHarvesting ?? 0}L
+            </span>
+          </div>
         </CardFooter>
       </Card>
     </Link>
