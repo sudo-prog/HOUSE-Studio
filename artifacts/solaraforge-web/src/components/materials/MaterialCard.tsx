@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Material, useListProjects } from "@workspace/api-client-react";
-import { Leaf, Info, Bookmark, BookmarkCheck, ChevronDown } from "lucide-react";
+import { Leaf, Info, Bookmark, BookmarkCheck, ChevronDown, GitCompareArrows, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { 
   Dialog, 
@@ -21,6 +21,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
+
+// --- localStorage helpers for favorites ---
+const FAVORITES_KEY = "sf-material-favorites";
+
+export function getFavorites(): number[] {
+  try { return JSON.parse(localStorage.getItem(FAVORITES_KEY) ?? "[]"); } catch { return []; }
+}
+
+export function toggleFavorite(id: number): number[] {
+  const current = getFavorites();
+  const updated = current.includes(id) ? current.filter(x => x !== id) : [...current, id];
+  localStorage.setItem(FAVORITES_KEY, JSON.stringify(updated));
+  return updated;
+}
 
 // --- localStorage helpers for project ↔ material associations ---
 function getSavedMaterials(projectId: number): number[] {
@@ -114,16 +128,52 @@ function SaveToProjectButton({ materialId, materialName }: { materialId: number;
 interface MaterialCardProps {
   material: Material;
   showDetails?: boolean;
+  isComparing?: boolean;
+  onToggleCompare?: (id: number) => void;
+  isFavorited?: boolean;
+  onToggleFavorite?: (id: number) => void;
 }
 
-export function MaterialCard({ material, showDetails = false }: MaterialCardProps) {
+export function MaterialCard({ material, showDetails = false, isComparing, onToggleCompare, isFavorited, onToggleFavorite }: MaterialCardProps) {
   const isNegativeCarbon = material.embodiedCarbon < 0;
 
   const CardBody = (
     <Card className={cn(
-      "overflow-hidden transition-all border-border/50 bg-card/50 backdrop-blur-sm h-full flex flex-col",
-      !showDetails && "hover:shadow-md cursor-pointer group"
+      "overflow-hidden transition-all border-border/50 bg-card/50 backdrop-blur-sm h-full flex flex-col relative",
+      !showDetails && "hover:shadow-md cursor-pointer group",
+      isComparing && "ring-2 ring-accent ring-offset-1"
     )}>
+      {/* Compare toggle — only shown when onToggleCompare is provided */}
+      {onToggleCompare && (
+        <button
+          onClick={e => { e.stopPropagation(); e.preventDefault(); onToggleCompare(material.id); }}
+          className={cn(
+            "absolute top-2 left-2 z-10 h-7 w-7 rounded-full flex items-center justify-center border transition-all shadow-sm",
+            isComparing
+              ? "bg-accent border-accent text-accent-foreground"
+              : "bg-card/90 border-border/60 text-muted-foreground hover:border-accent/50 hover:text-accent"
+          )}
+          title={isComparing ? "Remove from comparison" : "Add to comparison"}
+        >
+          <GitCompareArrows className="h-3.5 w-3.5" />
+        </button>
+      )}
+      {/* Favorite star — only shown when onToggleFavorite is provided */}
+      {onToggleFavorite && (
+        <button
+          onClick={e => { e.stopPropagation(); e.preventDefault(); onToggleFavorite(material.id); }}
+          className={cn(
+            "absolute top-2 z-10 h-7 w-7 rounded-full flex items-center justify-center border transition-all shadow-sm",
+            onToggleCompare ? "left-10" : "left-2",
+            isFavorited
+              ? "bg-amber-400 border-amber-400 text-white"
+              : "bg-card/90 border-border/60 text-muted-foreground hover:border-amber-400/60 hover:text-amber-500"
+          )}
+          title={isFavorited ? "Remove from favourites" : "Add to favourites"}
+        >
+          <Star className="h-3.5 w-3.5" fill={isFavorited ? "currentColor" : "none"} />
+        </button>
+      )}
       {material.imageUrl && (
         <div className="aspect-video relative overflow-hidden bg-muted">
           <img 

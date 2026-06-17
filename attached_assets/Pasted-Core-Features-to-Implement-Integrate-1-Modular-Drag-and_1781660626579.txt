@@ -1,0 +1,61 @@
+Core Features to Implement / Integrate
+1. Modular Drag-and-Drop Widget System (Home Screen)
+    * The default Home Screen is a fully customizable canvas of draggable, resizable, linkable widgets.
+    * Widgets represent workflow steps and can be added, removed, reordered, resized, and saved per project/user.
+    * Linking system: Connect widget outputs to inputs (e.g., Moodboard → 3D Editor → Garden → Power System) to automate end-to-end flows. Use visual node connections.
+    * Clicking a widget opens a full-screen advanced editor/view with deep settings.
+    * Widgets must support standalone use and compact dashboard mode.
+    * Make the system highly extensible: New widgets should be easy to create by implementing a standard interface/component contract.
+2. Pascal Editor Integration
+    * Use Pascal Editor (https://editor.pascal.app | https://github.com/pascalorg/editor) as the primary in-browser 3D modeling engine.
+    * Leverage its React Three Fiber + WebGPU foundation, IFC importer, parametric capabilities, presets, and modern features.
+    * Embed/extend it as the core 3D Parametric Editor Widget.
+    * Ensure seamless round-tripping with IFC (import/export), glTF, and internal data models.
+    * Add SolaraForge-specific overlays: parametric modules (core pods, expansions), sensor placements, garden zones, solar arrays, etc.
+3. Smart Regenerative Ecosystem
+    * Dual-Use AI Sensing: Security sensors/cameras repurposed for garden/crop monitoring (growth stage, ripeness detection, pests, soil health).
+    * AI Garden Orchestration: Crop rotation planner, automated irrigation (sprinklers/drip), planting/harvesting schedules, permaculture zoning.
+    * Off-Grid Power Management: Solar PV, battery, inverter, micro-hydro/wind optimization with weather forecasts, load prioritization, and energy flow visualizations.
+    * All integrated into the widget system (dedicated Garden Widget, Power Widget, Sensor/Automation Hub).
+4. Other Essential Capabilities
+    * Multimodal AI (text, images, voice, site photos) for moodboards, concept generation, and refinements.
+    * Environmental simulations (sun paths, weather extremes, energy performance, resilience).
+    * Material database with embodied carbon, lifecycle, and regenerative scores.
+    * Phased modular building (container/core pods + expansions).
+    * Detailed costing, BOM, CAD/CAM exports.
+    * AR/VR previews, Home Assistant + ESP32 configs export.
+    * Local-first (IndexedDB/PouchDB), PWA offline support, collaboration (real-time optional).
+Technical Stack & Architecture Principles
+* Frontend: Next.js 15+ (App Router), React 19, Tailwind + shadcn/ui.
+* 3D: React Three Fiber + Drei + Pascal Editor components (WebGPU).
+* Widget/Dashboard: react-grid-layout (or equivalent) for drag/resize + React Flow (xyflow) for visual linking/automation.
+* Backend: FastAPI (heavy compute, simulations, AI orchestration) or Supabase Edge.
+* AI: Mix of fast/local models + powerful reasoning models; agentic workflows.
+* Data/Interoperability: IFC as core standard; unified “Habitat” data model.
+* Extensibility: Plugin/widget registry system — new features added as self-contained widgets with clear interfaces, props for compact/full modes, and data flow contracts.
+Extensibility Requirements (Critical)
+* Design the entire architecture around maximum modularity. Any new feature (e.g., new simulation type, robotics integration, regional code checker) should be addable as a new widget or plugin with minimal core changes.
+* Provide clear patterns, templates, and documentation for:
+    * Creating a new widget (compact + full mode).
+    * Registering it in the dashboard.
+    * Defining inputs/outputs for linking.
+    * Integrating with Pascal Editor (custom tools, overlays, parametric objects).
+* Support user-defined reordering and workflow customization at runtime.
+* Versioning and forking of designs (Git-like).
+Always Prioritize
+* Performance (60fps on mid-range devices for 3D).
+* Privacy, accessibility (WCAG), offline capability.
+* Clean, well-documented, testable code with error handling.
+* Open standards and community extensibility.
+* Trade-off analysis when suggesting architecture decisions.
+When implementing or suggesting code:
+* Think step-by-step.
+* Provide modular, reusable components.
+* Include example widget templates and Pascal integration hooks.
+* Suggest tests and progressive enhancement strategies.
+Output Format for Tasks For any requested feature or phase: Deliver architecture overview, component structure, key code snippets, integration points with Pascal/widget system, and testing considerations.
+
+Next Tips for You in Replit:
+* Start by setting up the widget dashboard skeleton using react-grid-layout + React Flow.
+* Then fork/integrate relevant Pascal Editor packages or components.
+* Use this prompt as the system message when asking your coding AI for specific pieces.

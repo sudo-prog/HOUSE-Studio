@@ -116,6 +116,39 @@ export default function About() {
 
       <Separator />
 
+      {/* Changelog */}
+      <section className="space-y-5">
+        <h2 className="font-serif text-2xl font-bold text-foreground">What's New</h2>
+        <div className="space-y-3">
+          {[
+            { v: "1.5", date: "Jun 2026", items: ["Project duplication — clone any project in one click", "G+S/W/C/A keyboard navigation shortcuts", "Solarpunk Tip of the Day dashboard widget", "Inspire Me random-seed button in Moodboard Studio", "Clear Favourites & SolaraSpec History from Settings"] },
+            { v: "1.4", date: "Jun 2026", items: ["Project Notes / Journal tab in every project", "Material Favourites with star button and filter", "SolaraSpec history — browse and restore past generations", "Build View button jumps straight to Habitat Viewer tab"] },
+            { v: "1.3", date: "Jun 2026", items: ["Interactive SVG Habitat Viewer — Floor Plan, Elevation, Site Plan", "AI Collaborator tab with live conversation thread", "Moodboard tab with material suggestions from AI analysis", "Phase Timeline — advance projects through 5 lifecycle stages"] },
+            { v: "1.2", date: "Jun 2026", items: ["Widget Dashboard with drag-resize and custom widget toggle", "10-calculator Toolkit (solar, water, carbon, straw-bale…)", "Community Showcase with biome filter", "Visual Workflow builder with React Flow"] },
+            { v: "1.0", date: "Jun 2026", items: ["Initial release — Projects, Materials Library, Moodboard Studio", "Command Palette, Keyboard Shortcuts, AI Drawer", "Dark / Light / System theme with solarpunk palette", "PWA — installable on any device"] },
+          ].map(({ v, date, items }) => (
+            <Card key={v} className="border-border/50 bg-card/40">
+              <CardContent className="p-5 flex gap-4">
+                <div className="shrink-0 text-right pt-0.5">
+                  <Badge className="bg-primary/10 text-primary border-primary/20 font-mono">v{v}</Badge>
+                  <p className="text-[10px] text-muted-foreground mt-1">{date}</p>
+                </div>
+                <ul className="space-y-1 flex-1">
+                  {items.map(item => (
+                    <li key={item} className="flex items-start gap-2 text-sm text-muted-foreground">
+                      <span className="text-accent mt-0.5 shrink-0">✦</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      <Separator />
+
       {/* Open Data Commitment */}
       <section className="space-y-4">
         <h2 className="font-serif text-2xl font-bold text-foreground">Open Data Commitment</h2>

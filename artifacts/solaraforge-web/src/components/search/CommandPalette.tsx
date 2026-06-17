@@ -4,17 +4,19 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useListProjects, useListMaterials } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
-import { Search, TreePine, Database, Wrench, Wand2, Home, Info, Sun, Globe } from "lucide-react";
+import { Search, TreePine, Database, Wrench, Wand2, Home, Info, Sun, Globe, Workflow, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const STATIC_PAGES = [
-  { label: "Dashboard", href: "/", icon: Home, description: "Home overview" },
+  { label: "Dashboard", href: "/", icon: Home, description: "Home overview & widget mission control" },
   { label: "Projects", href: "/projects", icon: TreePine, description: "All habitat projects" },
-  { label: "Design Toolkit", href: "/tools", icon: Wrench, description: "5 professional calculators" },
+  { label: "Workflow", href: "/workflow", icon: Workflow, description: "AI pipeline data-flow visualiser" },
+  { label: "Design Toolkit", href: "/tools", icon: Wrench, description: "10 professional calculators" },
   { label: "Materials Library", href: "/materials", icon: Database, description: "Sustainable building materials" },
   { label: "Moodboard Studio", href: "/studio", icon: Wand2, description: "AI moodboard analyser" },
   { label: "Community Showcase", href: "/showcase", icon: Globe, description: "Public projects gallery" },
   { label: "About", href: "/about", icon: Info, description: "Our manifesto" },
+  { label: "Settings", href: "/settings", icon: Settings, description: "Theme, units & preferences" },
   { label: "Solar Designer Tool", href: "/tools", icon: Sun, description: "Panel count & annual yield" },
 ];
 
@@ -57,11 +59,11 @@ export default function CommandPalette({ open, onOpenChange }: Props) {
         label: m.name,
         href: `/materials`,
         icon: Database,
-        description: `${m.category} · ${m.embodiedCarbon < 0 ? "Carbon negative" : m.embodiedCarbon + " kg CO₂/m²"}`,
+        description: `${m.category} · ${m.embodiedCarbon < 0 ? "Carbon negative" : m.embodiedCarbon + " kg CO\u2082/m\u00b2"}`,
         type: "material" as const,
       }));
 
-    return [...pageResults, ...projectResults, ...materialResults].slice(0, 10);
+    return [...pageResults, ...projectResults, ...materialResults].slice(0, 12);
   }, [query, projects, materials]);
 
   useEffect(() => {
@@ -106,7 +108,6 @@ export default function CommandPalette({ open, onOpenChange }: Props) {
   return (
     <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) setQuery(""); }}>
       <DialogContent className="p-0 gap-0 overflow-hidden max-w-xl shadow-2xl">
-        {/* Search input */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50">
           <Search className="h-4 w-4 text-muted-foreground shrink-0" />
           <Input
@@ -120,10 +121,9 @@ export default function CommandPalette({ open, onOpenChange }: Props) {
           <kbd className="text-[10px] bg-muted border border-border rounded px-1.5 py-0.5 text-muted-foreground font-mono shrink-0">ESC</kbd>
         </div>
 
-        {/* Results */}
         <div className="max-h-80 overflow-y-auto">
           {results.length === 0 ? (
-            <div className="py-12 text-center text-sm text-muted-foreground">No results found for "{query}"</div>
+            <div className="py-12 text-center text-sm text-muted-foreground">No results found for &ldquo;{query}&rdquo;</div>
           ) : (
             <div className="p-2 space-y-0.5">
               {results.map((result, i) => (
@@ -151,10 +151,10 @@ export default function CommandPalette({ open, onOpenChange }: Props) {
         </div>
 
         <div className="px-4 py-2.5 border-t border-border/30 bg-muted/30 flex items-center gap-4 text-[10px] text-muted-foreground">
-          <span><kbd className="font-mono bg-background border border-border rounded px-1">↑↓</kbd> navigate</span>
-          <span><kbd className="font-mono bg-background border border-border rounded px-1">↵</kbd> open</span>
+          <span><kbd className="font-mono bg-background border border-border rounded px-1">&uarr;&darr;</kbd> navigate</span>
+          <span><kbd className="font-mono bg-background border border-border rounded px-1">&crarr;</kbd> open</span>
           <span><kbd className="font-mono bg-background border border-border rounded px-1">esc</kbd> close</span>
-          <span className="ml-auto">⌘K to open anywhere</span>
+          <span className="ml-auto">&lrm;&#8984;K to open anywhere</span>
         </div>
       </DialogContent>
     </Dialog>

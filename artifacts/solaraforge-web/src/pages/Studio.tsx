@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,9 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Wand2, Plus, X, Leaf, Sun, Layers, AlertCircle, Upload, ImageIcon } from "lucide-react";
+import { Wand2, Plus, X, Leaf, Sun, Layers, AlertCircle, Upload, ImageIcon, History, ChevronDown, ChevronUp, Trash2, Shuffle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+
+const HISTORY_KEY = "sf-solaraspec-history";
 
 interface SolaraSpec {
   title: string;
@@ -27,6 +29,41 @@ interface SolaraSpec {
   estimatedCarbon: number;
 }
 
+interface HistoryEntry {
+  spec: SolaraSpec;
+  description: string;
+  timestamp: number;
+}
+
+function loadHistory(): HistoryEntry[] {
+  try {
+    return JSON.parse(localStorage.getItem(HISTORY_KEY) ?? "[]");
+  } catch {
+    return [];
+  }
+}
+
+function saveHistory(entry: HistoryEntry) {
+  try {
+    const existing = loadHistory();
+    const updated = [entry, ...existing].slice(0, 8);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+  } catch {}
+}
+
+const INSPIRE_PROMPTS = [
+  "A low-impact earthship in the Arizona desert — passive solar, rammed earth walls, a food greenhouse corridor, rooftop cisterns and a mycelium insulation skin.",
+  "A floating bamboo longhouse on stilts above a tidal estuary in the tropics — solar canopy roof, constructed wetland below, and a living algae facade.",
+  "A semi-subterranean cob cottage in rural Wales — integrated into a south-facing hillside, slate roof with sedum, rocket mass heater, and a wood-coppice energy system.",
+  "A tiny straw-bale micro-home in a temperate forest clearing — triple-glazed south wall, composting toilet, rainwater-fed kitchen garden, and a small wind turbine.",
+  "A repurposed shipping container home on a coastal bluff — hempcrete infill panels, rooftop solar, greywater reed bed, and a living wall on the windward side.",
+  "A cob-and-glass greenhouse habitat in the Scottish Highlands — passive solar thermal storage, aquaponics bay, earth floor with underfloor heat from solar hot water.",
+  "A multi-family earthen cluster village in sub-Saharan savanna — vernacular adobe construction, biochar compost loop, photovoltaic micro-grid, and swale irrigation.",
+  "A tree-canopy retreat platform in a temperate rainforest — CLT structure, FSC timber, composting toilet, rainwater collection from leaf catchment, solar lanterns.",
+  "A Mediterranean cave-extension dwelling — existing rock thermal mass, PV array on the plateau above, cistern-fed drip orchard, strawberry and herb spiral garden.",
+  "A reclaimed-industrial adaptive reuse in an urban core — hempcrete partition walls, rooftop food forest, community solar co-op, and a constructed wetland courtyard.",
+];
+
 export default function Studio() {
   const { toast } = useToast();
   const [description, setDescription] = useState("");
@@ -36,6 +73,8 @@ export default function Studio() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [spec, setSpec] = useState<SolaraSpec | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [history, setHistory] = useState<HistoryEntry[]>(() => loadHistory());
+  const [historyOpen, setHistoryOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const addImageUrl = () => setImageUrls(prev => [...prev, ""]);
@@ -101,6 +140,9 @@ export default function Studio() {
 
       const data: SolaraSpec = await res.json();
       setSpec(data);
+      const entry: HistoryEntry = { spec: data, description: description.trim(), timestamp: Date.now() };
+      saveHistory(entry);
+      setHistory(loadHistory());
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Analysis failed";
       setError(msg);
@@ -128,13 +170,27 @@ export default function Studio() {
           <CardDescription>Describe the feeling, biome, or lifestyle of your dream regenerative habitat.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <Textarea
-            data-testid="input-description"
-            placeholder="E.g. A low-impact earthship in the Arizona desert — passive solar, rammed earth walls, a food greenhouse corridor, rooftop cisterns and a mycelium insulation skin…"
-            className="min-h-[120px] resize-none bg-background/50"
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-          />
+          <div className="relative">
+            <Textarea
+              data-testid="input-description"
+              placeholder="E.g. A low-impact earthship in the Arizona desert — passive solar, rammed earth walls, a food greenhouse corridor, rooftop cisterns and a mycelium insulation skin…"
+              className="min-h-[120px] resize-none bg-background/50 pr-32"
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="absolute top-2 right-2 h-7 text-xs text-muted-foreground hover:text-accent gap-1 bg-background/80 border border-border/40 hover:border-accent/50"
+              onClick={() => {
+                const prompt = INSPIRE_PROMPTS[Math.floor(Math.random() * INSPIRE_PROMPTS.length)];
+                setDescription(prompt);
+              }}
+            >
+              <Shuffle className="h-3 w-3" /> Inspire Me
+            </Button>
+          </div>
 
           <div className="space-y-3">
             <p className="text-sm font-medium text-muted-foreground">Inspiration Images <span className="text-xs">(optional)</span></p>
@@ -361,6 +417,70 @@ export default function Studio() {
 
           <Separator />
           <p className="text-center text-xs text-muted-foreground">SolaraSpec generated by SolaraForge AI · Results are conceptual and should be validated with qualified designers.</p>
+        </div>
+      )}
+
+      {/* SolaraSpec History */}
+      {history.length > 0 && (
+        <div className="border border-border/40 rounded-2xl overflow-hidden">
+          <button
+            onClick={() => setHistoryOpen(v => !v)}
+            className="w-full flex items-center justify-between px-5 py-4 bg-card/50 hover:bg-card/80 transition-colors"
+          >
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <History className="h-4 w-4 text-muted-foreground" />
+              Recent SolaraSpecs
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0">{history.length}</Badge>
+            </div>
+            {historyOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+          </button>
+
+          {historyOpen && (
+            <div className="p-4 space-y-3 bg-muted/10">
+              {history.map((entry, i) => (
+                <div
+                  key={entry.timestamp}
+                  className="flex items-start gap-3 p-3 rounded-xl bg-card/70 border border-border/40 hover:border-border/80 transition-all group"
+                >
+                  <div className="flex gap-1 shrink-0 pt-0.5">
+                    {entry.spec.palette.slice(0, 3).map((c, ci) => (
+                      <div key={ci} className="w-4 h-4 rounded-full border border-white/50" style={{ backgroundColor: c }} />
+                    ))}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-foreground truncate">{entry.spec.title}</p>
+                    <p className="text-[10px] text-muted-foreground truncate mt-0.5">{entry.description}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="secondary" className="text-[9px] px-1.5 py-0">{entry.spec.biome}</Badge>
+                      <span className="text-[9px] text-muted-foreground">{new Date(entry.timestamp).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 px-2 text-[10px]"
+                      onClick={() => { setSpec(entry.spec); setDescription(entry.description); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                    >
+                      Restore
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                      onClick={() => {
+                        const updated = history.filter((_, idx) => idx !== i);
+                        localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+                        setHistory(updated);
+                      }}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -22,11 +22,13 @@ interface Message {
 interface AIDrawerContextValue {
   open: (projectName?: string) => void;
   close: () => void;
+  openWithMessage: (message: string) => void;
 }
 
 const AIDrawerContext = createContext<AIDrawerContextValue>({
   open: () => {},
   close: () => {},
+  openWithMessage: () => {},
 });
 
 export function useAIDrawer() {
@@ -56,6 +58,11 @@ export function AIDrawerProvider({ children }: Props) {
   }, []);
 
   const close = useCallback(() => setIsOpen(false), []);
+
+  const openWithMessage = useCallback((message: string) => {
+    setIsOpen(true);
+    setInput(message);
+  }, []);
 
   const startNewChat = () => {
     setMessages([]);
@@ -141,7 +148,7 @@ export function AIDrawerProvider({ children }: Props) {
   };
 
   return (
-    <AIDrawerContext.Provider value={{ open, close }}>
+    <AIDrawerContext.Provider value={{ open, close, openWithMessage }}>
       {children}
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetContent side="right" className="w-full sm:w-[440px] p-0 flex flex-col bg-card">
@@ -165,15 +172,39 @@ export function AIDrawerProvider({ children }: Props) {
           <ScrollArea ref={scrollRef} className="flex-1 px-4 py-4">
             <div className="space-y-4">
               {messages.length === 0 && (
-                <div className="flex flex-col items-center justify-center h-60 text-center space-y-3 text-muted-foreground">
-                  <MessageCircle className="h-10 w-10 opacity-30" />
+                <div className="flex flex-col items-center justify-center min-h-[240px] text-center space-y-4 text-muted-foreground">
+                  <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center">
+                    <Leaf className="h-7 w-7 text-accent" />
+                  </div>
                   <div>
-                    <p className="text-sm font-semibold font-serif">SolaraForge AI Collaborator</p>
+                    <p className="text-sm font-semibold font-serif text-foreground">SolaraForge AI Collaborator</p>
                     <p className="text-xs opacity-70 max-w-xs mt-1">
                       {projectContext
                         ? `Ask me about ${projectContext} — materials, solar design, carbon calculations, or any regenerative building question.`
                         : "Ask me about regenerative materials, passive solar design, embodied carbon, or any habitat design question."}
                     </p>
+                  </div>
+                  <div className="flex flex-wrap justify-center gap-2 px-2">
+                    {(projectContext ? [
+                      `What materials suit a ${projectContext}?`,
+                      "How do I improve my solar score?",
+                      "Estimate embodied carbon for this project",
+                      "What's the best insulation for my climate?",
+                    ] : [
+                      "Best carbon-negative wall systems?",
+                      "How does passive solar design work?",
+                      "Compare hempcrete vs straw bale",
+                      "How to harvest rainwater for a family of 4?",
+                      "What is a SolaraSpec?",
+                    ]).map(q => (
+                      <button
+                        key={q}
+                        onClick={() => setInput(q)}
+                        className="text-[11px] px-2.5 py-1.5 rounded-full border border-border/50 bg-muted/40 hover:bg-accent/10 hover:border-accent/40 hover:text-accent transition-all text-left"
+                      >
+                        {q}
+                      </button>
+                    ))}
                   </div>
                 </div>
               )}
@@ -235,14 +266,19 @@ export function AIDrawerProvider({ children }: Props) {
 export function AIDrawerTrigger({ projectName }: { projectName?: string }) {
   const { open } = useAIDrawer();
   return (
-    <Button
-      data-testid="button-open-ai-drawer"
-      onClick={() => open(projectName)}
-      size="icon"
-      className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-40 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-2xl hover:scale-110 transition-transform"
-      title="AI Collaborator"
-    >
-      <MessageCircle className="h-6 w-6" />
-    </Button>
+    <div className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-40 group flex flex-col items-center gap-1.5">
+      <span className="hidden md:flex items-center gap-1 text-[10px] bg-card/90 backdrop-blur text-muted-foreground border border-border/60 rounded-full px-2 py-0.5 shadow opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+        <kbd className="font-mono text-[9px]">⌘J</kbd> AI Collaborator
+      </span>
+      <Button
+        data-testid="button-open-ai-drawer"
+        onClick={() => open(projectName)}
+        size="icon"
+        className="h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-2xl hover:scale-110 transition-transform"
+        title="AI Collaborator (⌘J)"
+      >
+        <MessageCircle className="h-6 w-6" />
+      </Button>
+    </div>
   );
 }

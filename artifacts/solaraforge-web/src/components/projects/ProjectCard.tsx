@@ -1,9 +1,11 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Project } from "@workspace/api-client-react";
-import { Link } from "wouter";
-import { Droplets } from "lucide-react";
+import { Project, useCreateProject, getListProjectsQueryKey } from "@workspace/api-client-react";
+import { Link, useLocation } from "wouter";
+import { Droplets, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 const PHASE_ORDER = ["concept", "planning", "design", "build", "complete"];
 const PHASE_EMOJIS: Record<string, string> = {
@@ -19,10 +21,40 @@ export function ProjectCard({ project }: ProjectCardProps) {
   const radius = 18;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (score / 100) * circumference;
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
+  const createProject = useCreateProject();
+
+  const handleDuplicate = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    createProject.mutate(
+      {
+        data: {
+          name: `${project.name} (Copy)`,
+          biome: project.biome ?? "Temperate Forest",
+          description: project.description ?? "",
+          phase: "concept",
+          estimatedCost: project.estimatedCost ?? 0,
+        },
+      },
+      {
+        onSuccess: (data) => {
+          queryClient.invalidateQueries({ queryKey: getListProjectsQueryKey() });
+          toast({ title: "Project duplicated", description: `"${project.name} (Copy)" created.` });
+          navigate(`/projects/${data.id}`);
+        },
+        onError: () => {
+          toast({ title: "Duplication failed", description: "Could not duplicate this project.", variant: "destructive" });
+        },
+      }
+    );
+  };
 
   return (
     <Link href={`/projects/${project.id}`}>
-      <Card className="overflow-hidden hover:shadow-lg transition-all cursor-pointer group border-border/50 bg-card/50 backdrop-blur-sm">
+      <Card className="overflow-hidden hover:shadow-lg transition-all cursor-pointer group border-border/50 bg-card/50 backdrop-blur-sm relative">
         {project.thumbnailUrl && (
           <div className="aspect-video relative overflow-hidden">
             <img 
@@ -37,6 +69,20 @@ export function ProjectCard({ project }: ProjectCardProps) {
             </div>
           </div>
         )}
+
+        {/* Hover action bar */}
+        <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+          <button
+            onClick={handleDuplicate}
+            disabled={createProject.isPending}
+            title="Duplicate project"
+            className="flex items-center gap-1 text-[11px] font-medium bg-white/90 dark:bg-card/90 backdrop-blur-sm text-foreground border border-border/60 rounded-md px-2 py-1 shadow-sm hover:bg-primary hover:text-primary-foreground transition-colors disabled:opacity-50"
+          >
+            <Copy className="h-3 w-3" />
+            {createProject.isPending ? "Copying…" : "Duplicate"}
+          </button>
+        </div>
+
         <CardHeader className="p-4 pb-2">
           <div className="flex justify-between items-start gap-2">
             <h3 className="font-serif text-lg font-bold leading-tight group-hover:text-primary transition-colors">

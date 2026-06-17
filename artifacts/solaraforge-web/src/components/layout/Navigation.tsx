@@ -12,6 +12,7 @@ import {
   Globe,
   Settings,
   Search,
+  Workflow,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -22,6 +23,7 @@ import { useState } from "react";
 const navItems = [
   { href: "/", label: "Dashboard", icon: Home },
   { href: "/projects", label: "Projects", icon: TreePine },
+  { href: "/workflow", label: "Workflow", icon: Workflow },
   { href: "/tools", label: "Toolkit", icon: Wrench, badge: "10" },
   { href: "/materials", label: "Materials", icon: Database },
   { href: "/studio", label: "Studio", icon: Wand2 },
@@ -95,8 +97,15 @@ export function Sidebar({ onOpenSearch }: SidebarProps) {
           ))}
         </nav>
 
-        <div className="px-4 pb-4 border-t border-sidebar-border pt-3">
-          <p className="text-[10px] text-sidebar-foreground/30 text-center">
+        <div className="px-4 pb-4 border-t border-sidebar-border pt-3 space-y-2">
+          <div className="flex items-center justify-center gap-2 text-[10px] text-sidebar-foreground/30">
+            <kbd className="px-1 py-0.5 rounded border border-sidebar-foreground/20 bg-sidebar-foreground/5 font-mono">⌘K</kbd>
+            <span>search</span>
+            <span className="opacity-40">·</span>
+            <kbd className="px-1 py-0.5 rounded border border-sidebar-foreground/20 bg-sidebar-foreground/5 font-mono">?</kbd>
+            <span>shortcuts</span>
+          </div>
+          <p className="text-[10px] text-sidebar-foreground/25 text-center">
             SolaraForge · Regenerative Design Platform
           </p>
         </div>

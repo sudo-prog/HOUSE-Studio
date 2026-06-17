@@ -1,12 +1,12 @@
+import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useListProjects } from "@workspace/api-client-react";
 import { Link } from "wouter";
-import { Globe, Leaf, Sun, Droplets, ArrowRight, Star, TreePine } from "lucide-react";
+import { Globe, Leaf, Sun, Droplets, ArrowRight, Star, TreePine, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Featured community builds (curated static + live projects)
 const FEATURED = [
   {
     name: "The Sonoran Earthship",
@@ -106,6 +106,14 @@ const FEATURED = [
   },
 ];
 
+const BIOME_COLOR: Record<string, string> = {
+  "Desert":           "bg-amber-400",
+  "Tropical":         "bg-green-500",
+  "Coastal":          "bg-blue-400",
+  "Temperate Forest": "bg-primary",
+  "All":              "bg-muted-foreground",
+};
+
 const STATS = [
   { label: "Community Builds", value: "1,240+", icon: TreePine },
   { label: "Tonnes CO₂ Sequestered", value: "4,800", icon: Leaf },
@@ -113,9 +121,22 @@ const STATS = [
   { label: "Countries Active", value: "47", icon: Globe },
 ];
 
+const ALL_BIOMES = ["All", ...Array.from(new Set(FEATURED.map(f => f.biome)))];
+
 export default function Showcase() {
   const { data: projects } = useListProjects();
+  const [biomeFilter, setBiomeFilter] = useState("All");
+  const [onlyNegative, setOnlyNegative] = useState(false);
+
   const liveProjects = (projects ?? []).filter(p => p.phase === "complete" || p.phase === "build");
+
+  const filtered = useMemo(() => {
+    return FEATURED.filter(b => {
+      if (biomeFilter !== "All" && b.biome !== biomeFilter) return false;
+      if (onlyNegative && b.embodiedCarbon >= 0) return false;
+      return true;
+    });
+  }, [biomeFilter, onlyNegative]);
 
   return (
     <div className="space-y-12 pb-20 md:pb-8">
@@ -157,73 +178,125 @@ export default function Showcase() {
       </div>
 
       {/* Featured Builds */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-3">
-          <h2 className="font-serif text-2xl font-bold">Featured Builds</h2>
-          <Badge variant="outline" className="text-accent border-accent/30">
-            <Star className="h-3 w-3 mr-1" /> Curated
-          </Badge>
+      <section className="space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <h2 className="font-serif text-2xl font-bold">Featured Builds</h2>
+            <Badge variant="outline" className="text-accent border-accent/30">
+              <Star className="h-3 w-3 mr-1" /> Curated
+            </Badge>
+          </div>
+
+          {/* Filters */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => setOnlyNegative(v => !v)}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all",
+                onlyNegative
+                  ? "bg-green-50 border-green-300 text-green-700"
+                  : "bg-card/50 border-border/50 text-muted-foreground hover:border-green-300"
+              )}
+            >
+              <Leaf className="h-3 w-3" /> Carbon Negative Only
+            </button>
+            <div className="flex gap-1.5">
+              {ALL_BIOMES.map(b => (
+                <button
+                  key={b}
+                  onClick={() => setBiomeFilter(b)}
+                  className={cn(
+                    "px-3 py-1.5 rounded-full text-xs font-semibold border transition-all",
+                    biomeFilter === b
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card/50 border-border/50 text-muted-foreground hover:border-primary/30"
+                  )}
+                >
+                  {b}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {FEATURED.map(build => (
-            <Card key={build.name} className="border-border/50 bg-card/60 hover:shadow-lg transition-all overflow-hidden group">
-              {/* Colour band based on biome */}
-              <div className={cn(
-                "h-1.5 w-full",
-                build.biome === "Desert" ? "bg-amber-400" :
-                build.biome === "Tropical" ? "bg-green-500" :
-                build.biome === "Coastal" ? "bg-blue-400" : "bg-primary"
-              )} />
-              <CardContent className="p-5 space-y-4">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <span className="text-3xl">{build.emoji}</span>
-                    <h3 className="font-serif font-bold text-base leading-snug mt-1">{build.name}</h3>
-                    <p className="text-xs text-muted-foreground">{build.location} · {build.year}</p>
+
+        {filtered.length === 0 ? (
+          <div className="text-center py-16 rounded-2xl border-2 border-dashed border-border/30 bg-muted/10 space-y-3">
+            <p className="text-3xl">🌿</p>
+            <p className="text-muted-foreground text-sm">No builds match your current filters.</p>
+            <button
+              className="text-xs text-primary hover:underline"
+              onClick={() => { setBiomeFilter("All"); setOnlyNegative(false); }}
+            >
+              Clear filters
+            </button>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filtered.map(build => (
+              <Card key={build.name} className="border-border/50 bg-card/60 hover:shadow-lg transition-all overflow-hidden group">
+                <div className={cn("h-1.5 w-full", BIOME_COLOR[build.biome] ?? "bg-primary")} />
+                <CardContent className="p-5 space-y-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="text-3xl">{build.emoji}</span>
+                      <h3 className="font-serif font-bold text-base leading-snug mt-1">{build.name}</h3>
+                      <p className="text-xs text-muted-foreground">{build.location} · {build.year}</p>
+                    </div>
+                    <Badge variant="secondary" className="text-[10px] shrink-0">{build.biome}</Badge>
                   </div>
-                  <Badge variant="secondary" className="text-[10px] shrink-0">{build.biome}</Badge>
-                </div>
 
-                <p className="text-xs text-muted-foreground leading-relaxed">{build.description}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{build.description}</p>
 
-                {/* Highlight */}
-                <div className="flex items-center gap-1.5 text-xs text-green-700 dark:text-green-400 font-semibold bg-green-50 dark:bg-green-900/20 border border-green-200/50 rounded-lg px-2.5 py-1.5">
-                  <Leaf className="h-3 w-3 shrink-0" /> {build.highlight}
-                </div>
-
-                {/* Metrics row */}
-                <div className="grid grid-cols-3 gap-2 text-center border-t border-border/30 pt-3">
-                  <div>
-                    <p className="text-[10px] text-muted-foreground uppercase font-semibold">Solar</p>
-                    <p className="text-sm font-bold text-accent">{build.solarScore}%</p>
+                  <div className={cn(
+                    "flex items-center gap-1.5 text-xs font-semibold rounded-lg px-2.5 py-1.5",
+                    build.embodiedCarbon < 0
+                      ? "text-green-700 bg-green-50 border border-green-200/50"
+                      : "text-amber-700 bg-amber-50 border border-amber-200/50"
+                  )}>
+                    <Leaf className="h-3 w-3 shrink-0" /> {build.highlight}
                   </div>
-                  <div>
-                    <p className="text-[10px] text-muted-foreground uppercase font-semibold">Carbon</p>
-                    <p className={cn("text-sm font-bold", build.embodiedCarbon < 0 ? "text-green-700 dark:text-green-400" : "text-amber-600")}>
-                      {build.embodiedCarbon < 0 ? "−" : "+"}{Math.abs(Math.round(build.embodiedCarbon / 1000 * 10) / 10)}t
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-muted-foreground uppercase font-semibold">Cost</p>
-                    <p className="text-sm font-bold">${(build.cost / 1000).toFixed(0)}k</p>
-                  </div>
-                </div>
 
-                {/* Tags */}
-                <div className="flex flex-wrap gap-1">
-                  {build.tags.slice(0, 3).map(t => (
-                    <Badge key={t} variant="outline" className="text-[9px] px-1.5 py-0 border-border/40">{t}</Badge>
-                  ))}
-                </div>
+                  <div className="grid grid-cols-3 gap-2 text-center border-t border-border/30 pt-3">
+                    <div>
+                      <p className="text-[10px] text-muted-foreground uppercase font-semibold">Solar</p>
+                      <p className="text-sm font-bold text-accent">{build.solarScore}%</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-muted-foreground uppercase font-semibold">Carbon</p>
+                      <p className={cn("text-sm font-bold", build.embodiedCarbon < 0 ? "text-green-700" : "text-amber-600")}>
+                        {build.embodiedCarbon < 0 ? "−" : "+"}{Math.abs(Math.round(build.embodiedCarbon / 100) / 10)}t
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-muted-foreground uppercase font-semibold">Cost</p>
+                      <p className="text-sm font-bold">${(build.cost / 1000).toFixed(0)}k</p>
+                    </div>
+                  </div>
 
-                <div className="flex items-center justify-between text-xs text-muted-foreground border-t border-border/30 pt-2">
-                  <span>Built by <strong className="text-foreground/80">{build.builder}</strong></span>
-                  <span>{build.size}</span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                  <div className="flex flex-wrap gap-1">
+                    {build.tags.slice(0, 3).map(t => (
+                      <Badge key={t} variant="outline" className="text-[9px] px-1.5 py-0 border-border/40">{t}</Badge>
+                    ))}
+                    {build.tags.length > 3 && (
+                      <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-border/40">+{build.tags.length - 3}</Badge>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs text-muted-foreground border-t border-border/30 pt-2">
+                    <span>Built by <strong className="text-foreground/80">{build.builder}</strong></span>
+                    <span>{build.size}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        <p className="text-xs text-center text-muted-foreground">
+          Showing {filtered.length} of {FEATURED.length} featured builds
+          {biomeFilter !== "All" ? ` · ${biomeFilter}` : ""}
+          {onlyNegative ? " · Carbon negative only" : ""}
+        </p>
       </section>
 
       {/* Live projects from the user's workspace */}
@@ -273,7 +346,10 @@ export default function Showcase() {
       <section className="text-center py-8 border border-dashed border-border/40 rounded-3xl bg-muted/20 space-y-4">
         <p className="text-3xl">🌿</p>
         <h2 className="font-serif text-2xl font-bold">Your build could be here</h2>
-        <p className="text-muted-foreground max-w-sm mx-auto text-sm">Every home built with SolaraForge is eligible for the community showcase. Open-source your build and inspire others.</p>
+        <p className="text-muted-foreground max-w-sm mx-auto text-sm">
+          Every home built with SolaraForge is eligible for the community showcase.
+          Open-source your build and inspire others.
+        </p>
         <Link href="/projects">
           <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-8 gap-2">
             Start Your Project <ArrowRight className="h-4 w-4" />

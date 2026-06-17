@@ -1,6 +1,19 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
+import "react-grid-layout/css/styles.css";
+
+// Apply saved theme before React renders — prevents flash of wrong theme
+(function () {
+  try {
+    const theme = localStorage.getItem("sf-theme") ?? "system";
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else if (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.classList.add("dark");
+    }
+  } catch {}
+})();
 
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
   import("virtual:pwa-register").then(({ registerSW }) => {

@@ -203,6 +203,42 @@ export default function Settings() {
               <Trash2 className="h-3.5 w-3.5" /> Clear
             </Button>
           </div>
+          <Separator />
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold">Clear material favourites</p>
+              <p className="text-xs text-muted-foreground">Removes all starred materials from your local favourites list.</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                localStorage.removeItem("sf-material-favorites");
+                toast({ title: "Favourites cleared", description: "All starred materials have been removed." });
+              }}
+              className="text-amber-600 border-amber-200 hover:bg-amber-50 gap-1.5"
+            >
+              <Trash2 className="h-3.5 w-3.5" /> Clear
+            </Button>
+          </div>
+          <Separator />
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold">Clear SolaraSpec history</p>
+              <p className="text-xs text-muted-foreground">Removes all saved SolaraSpec generations from the Studio history panel.</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                localStorage.removeItem("sf-solaraspec-history");
+                toast({ title: "History cleared", description: "SolaraSpec history has been removed." });
+              }}
+              className="text-orange-600 border-orange-200 hover:bg-orange-50 gap-1.5"
+            >
+              <Trash2 className="h-3.5 w-3.5" /> Clear
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
