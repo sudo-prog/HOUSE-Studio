@@ -127,8 +127,22 @@ router.post("/openai/conversations/:id/messages", async (req, res) => {
       .where(eq(messagesTable.conversationId, id))
       .orderBy(asc(messagesTable.createdAt));
 
+    const { projectMemory, projectContext } = req.body as {
+      projectMemory?: string;
+      projectContext?: string;
+    };
+
+    let systemContent = SOLARA_SYSTEM_PROMPT;
+    if (projectContext) {
+      systemContent += `\n\n## Current Project\n${projectContext}`;
+    }
+    if (projectMemory && projectMemory.trim()) {
+      systemContent += `\n\n## Project Memory (key decisions & facts you must recall)\n${projectMemory}`;
+    }
+    systemContent += `\n\n## Code Generation Rules\nWhen generating code, always start the first line of every code block with a filepath comment like: // filepath: src/components/foo/Bar.tsx\nThis allows the user to apply your code directly to their project with one click.`;
+
     const chatMessages = [
-      { role: "system" as const, content: SOLARA_SYSTEM_PROMPT },
+      { role: "system" as const, content: systemContent },
       ...history.map((m) => ({
         role: m.role as "user" | "assistant",
         content: m.content,

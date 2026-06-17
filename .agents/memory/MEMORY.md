@@ -2,3 +2,4 @@
 - [Lazy AI client pattern](lazy-ai-client.md) — AI server client must be a Proxy/lazy getter; eager validation at import time crashes the API server on startup if env vars aren't set
 - [Zod schema naming](zod-schema-naming.md) — generated Zod query schemas use QueryParams suffix (e.g. ListMaterialsQueryParams not ListMaterialsParams); always verify names before using
 - [SolaraForge PWA architecture](solaraforge-pwa.md) — key stack decisions, API contract, localStorage conventions, and hook signatures consistent across all components
+- [SolaraForge AI system](solaraforge-ai.md) — AI Collaborator features: memory (localStorage), ts-check API, apply-code API, code block renderer with filepath convention
