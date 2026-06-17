@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { useAnalyzeMoodboard, useListMaterials, SolaraSpec, Material } from "@workspace/api-client-react";
+import { useAnalyzeMoodboard, useListMaterials, useUpdateProject, getGetProjectQueryKey, SolaraSpec, Material } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { saveMaterialToProject, getProjectMaterials } from "@/components/materials/MaterialCard";
+import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import {
   ImagePlus,
@@ -22,6 +23,7 @@ import {
   Zap,
   BookmarkPlus,
   BookmarkCheck,
+  CheckCircle2,
 } from "lucide-react";
 
 interface MoodboardTabProps {
@@ -322,6 +324,25 @@ interface ConceptCardProps {
 }
 
 function ConceptCard({ spec, projectId, materials }: ConceptCardProps) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const updateProject = useUpdateProject();
+
+  const handleApply = async () => {
+    await updateProject.mutateAsync({
+      id: projectId,
+      data: {
+        biome: spec.biome,
+        description: spec.summary,
+      },
+    });
+    queryClient.invalidateQueries({ queryKey: getGetProjectQueryKey(projectId) });
+    toast({
+      title: "Concept applied!",
+      description: `Updated biome to "${spec.biome}" and description from the concept card.`,
+    });
+  };
+
   return (
     <Card className="border-border/50 bg-card/50 overflow-hidden">
       <div className="h-2 w-full" style={{ background: `linear-gradient(to right, ${spec.palette.join(", ")})` }} />
@@ -430,6 +451,24 @@ function ConceptCard({ spec, projectId, materials }: ConceptCardProps) {
             </div>
           </div>
         )}
+
+        <Button
+          onClick={handleApply}
+          disabled={updateProject.isPending}
+          className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+        >
+          {updateProject.isPending ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Applying…
+            </>
+          ) : (
+            <>
+              <CheckCircle2 className="h-4 w-4" />
+              Apply to Project
+            </>
+          )}
+        </Button>
       </CardContent>
     </Card>
   );
