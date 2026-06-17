@@ -22,7 +22,9 @@ import {
   ExternalLink,
   CheckSquare,
   Leaf,
+  ImagePlus,
 } from "lucide-react";
+import { MoodboardTab } from "@/components/projects/MoodboardTab";
 import PhaseTimeline from "@/components/projects/PhaseTimeline";
 import DesignChecklist from "@/components/projects/DesignChecklist";
 import { ExportSpecButton } from "@/components/projects/ExportSpec";
@@ -119,7 +121,7 @@ export default function ProjectDetail() {
       <PhaseTimeline projectId={project.id} currentPhase={project.phase ?? "concept"} />
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="bg-card/50 border border-border/50 h-11 p-1">
+        <TabsList className="bg-card/50 border border-border/50 h-11 p-1 flex-wrap">
           <TabsTrigger value="overview" className="gap-2">
             <LayoutDashboard className="h-4 w-4" /> Overview
           </TabsTrigger>
@@ -128,6 +130,9 @@ export default function ProjectDetail() {
           </TabsTrigger>
           <TabsTrigger value="materials" className="gap-2">
             <Database className="h-4 w-4" /> Materials
+          </TabsTrigger>
+          <TabsTrigger value="moodboard" className="gap-2">
+            <ImagePlus className="h-4 w-4" /> Moodboard
           </TabsTrigger>
           <TabsTrigger value="checklist" className="gap-2">
             <CheckSquare className="h-4 w-4" /> Checklist
@@ -192,6 +197,10 @@ export default function ProjectDetail() {
 
         <TabsContent value="materials" className="mt-0">
           <MaterialsBrowser />
+        </TabsContent>
+
+        <TabsContent value="moodboard" className="mt-0">
+          <MoodboardTab project={project} />
         </TabsContent>
 
         <TabsContent value="checklist" className="mt-0">
