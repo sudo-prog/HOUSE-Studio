@@ -22,7 +22,7 @@ import { useState } from "react";
 const navItems = [
   { href: "/", label: "Dashboard", icon: Home },
   { href: "/projects", label: "Projects", icon: TreePine },
-  { href: "/tools", label: "Toolkit", icon: Wrench, badge: "5" },
+  { href: "/tools", label: "Toolkit", icon: Wrench, badge: "10" },
   { href: "/materials", label: "Materials", icon: Database },
   { href: "/studio", label: "Studio", icon: Wand2 },
   { href: "/showcase", label: "Showcase", icon: Globe },
@@ -34,7 +34,7 @@ const navItems = [
 const bottomNavItems = [
   { href: "/", label: "Home", icon: Home },
   { href: "/projects", label: "Projects", icon: TreePine },
-  { href: "/tools", label: "Toolkit", icon: Wrench, badge: "5" },
+  { href: "/tools", label: "Toolkit", icon: Wrench, badge: "10" },
   { href: "/materials", label: "Materials", icon: Database },
   { href: "/studio", label: "Studio", icon: Wand2 },
 ];
