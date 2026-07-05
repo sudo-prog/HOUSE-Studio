@@ -2,6 +2,11 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 import "react-grid-layout/css/styles.css";
+import { setBaseUrl } from "@workspace/api-client-react";
+
+// Configure API base URL for remote API calls
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
+setBaseUrl(apiBaseUrl || null);
 
 // Apply saved theme before React renders — prevents flash of wrong theme
 (function () {
