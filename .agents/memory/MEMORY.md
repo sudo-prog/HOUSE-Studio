@@ -1,2 +1,0 @@
-- [react-grid-layout v2 API](rgl-v2-api.md) — v2 uses GridLayout+useContainerWidth, no WidthProvider; config in gridConfig/dragConfig/resizeConfig objects
-- [Widget Dashboard Architecture](widget-dashboard.md) — WidgetRegistry.ts central def; WidgetGrid.tsx grid; WidgetCard.tsx shell with .drag-handle class
