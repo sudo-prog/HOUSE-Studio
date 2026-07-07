@@ -15,9 +15,10 @@ Architecture decisions, file structure, API patterns, and known issues.
 ## Monorepo Structure
 - `artifacts/solaraforge-web/` — React 19 frontend (Vite 7, Tailwind 4, shadcn/ui, Zustand, TanStack Query, React Grid Layout, XYFlow)
 - `artifacts/api-server/` — Express 5 backend (Drizzle ORM, PostgreSQL, OpenAI integration)
-- `lib/db/` — Shared database schema (Drizzle), migrations
+- `artifacts/solaraforge-mobile/` — **Expo (React Native) mobile app** — Expo Router, tabs (Projects/Materials/Profile), project detail screen. Uses shared `@workspace/api-client-react`. Builds via `node scripts/build.js` (static Expo Go bundle) + `node server/serve.js`.
+- `lib/db/` — Shared database schema (Drizzle), migrations (`./drizzle/*.sql`)
 - `lib/api-zod/` — Shared Zod schemas, API client
-- `lib/api-client-react/` — Generated API client for frontend
+- `lib/api-client-react/` — Generated API client for frontend (orval/openapi)
 - `lib/integrations-openai-ai-react/` — Voice/audio React hooks
 - `lib/integrations-openai-ai-server/` — OpenAI server utilities
 
@@ -50,16 +51,25 @@ Architecture decisions, file structure, API patterns, and known issues.
   - SSE streaming responses
 - `lib/integrations-openai-ai-react/` — Voice recorder and playback hooks
 
-### Known Issues
+### Known Issues / Gaps
 - AI requires `OPENAI_API_KEY` environment variable
-- PostgreSQL required for conversation history
-- No explicit mobile app (web app is responsive)
+- PostgreSQL required for DB-backed routes (conversation history, projects, materials)
+- **No auth layer yet** — routes are open. The mobile app reads public endpoints (health/projects/materials). If auth is added later, wire `setAuthTokenGetter` + a token exchange route (see sibling studios for the pattern).
+- React Native Reanimated / gesture-handler / keyboard-controller NOT pulled into the mobile app to keep the build lean (only the deps the screens use). Add them if richer interaction is needed.
 
 ---
 
 ## Deployment Checklist
-- [ ] Set environment variables in deployment platform
-- [ ] Apply database migrations (`pnpm db:push` or direct SQL)
-- [ ] Configure `VITE_API_BASE_URL` in Vercel dashboard to point to API server
-- [ ] Configure `OPENAI_API_KEY` for AI functionality
-- [ ] Set up PWA offline support if needed
+- [x] `vercel.json` committed (Vite preset, build = `cd artifacts/solaraforge-web && pnpm run build`, out = `dist/public`)
+- [x] DB migrations generated (`lib/db/drizzle/*.sql`) — run `pnpm --filter @workspace/db push` against a live Postgres
+- [ ] Set `VITE_API_BASE_URL` in Vercel dashboard to point to the API server
+- [ ] Set `OPENAI_API_KEY` for AI functionality
+- [ ] Provision + migrate PostgreSQL (DATABASE_URL) for the API server
+- [ ] Mobile app: `pnpm --filter @workspace/solaraforge-mobile build` produces a static Expo Go bundle in `static-build/`
+
+## 2026-07-08 Audit + Fixes
+- **FIXED:** `vite.config.ts` threw if `PORT`/`BASE_PATH` were unset → Vercel build would crash. Now defaults to `PORT=3000`, `BASE_PATH=/`.
+- **FIXED:** `lib/integrations-openai-ai-react` only declared `react` as a peer dep, so `tsc --build` failed (TS2307). Added `react`/`react-dom`/`@types/react` as devDependencies. `pnpm run typecheck` now passes.
+- **ADDED:** `lib/db/drizzle/` migrations from the existing schema (previously none existed). `drizzle-kit generate` succeeded.
+- **ADDED:** `artifacts/solaraforge-mobile/` Expo app (was missing — every sibling studio has a `*-mobile` app). Mirrors the WWW/MAKE/PWA mobile structure: Expo Router tabs, real API hooks (health/projects/materials), shared client, build/serve scripts. Typechecks cleanly.
+- **ADDED:** `vercel.json` and `.env.example`.
