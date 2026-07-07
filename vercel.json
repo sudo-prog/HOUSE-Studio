@@ -1,14 +1,17 @@
 {
   "framework": "vite",
   "buildCommand": "cd artifacts/solaraforge-web && pnpm run build",
-  "outputDirectory": "dist/public",
   "installCommand": "pnpm install",
-  "rootDirectory": "../..",
-  "devCommand": "cd artifacts/solaraforge-web && pnpm run dev",
-  "env": [
+  "outputDirectory": "artifacts/solaraforge-web/dist/public",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "headers": [
     {
-      "key": "VITE_API_BASE_URL",
-      "value": "https://<your-api-server>.com"
+      "source": "/index.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
     }
   ]
 }
