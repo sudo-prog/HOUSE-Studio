@@ -1,9 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "rootDirectory": "artifacts/solaraforge-web",
-  "buildCommand": "pnpm install && pnpm build",
-  "installCommand": "pnpm install",
-  "outputDirectory": "dist/public",
+  "buildCommand": "cd artifacts/solaraforge-web && pnpm install && pnpm build",
+  "installCommand": "echo 'install handled in buildCommand'",
+  "outputDirectory": "artifacts/solaraforge-web/dist/public",
   "framework": "vite",
   "env": {
     "PORT": "5000",
