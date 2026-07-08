@@ -73,3 +73,9 @@ Architecture decisions, file structure, API patterns, and known issues.
 - **ADDED:** `lib/db/drizzle/` migrations from the existing schema (previously none existed). `drizzle-kit generate` succeeded.
 - **ADDED:** `artifacts/solaraforge-mobile/` Expo app (was missing — every sibling studio has a `*-mobile` app). Mirrors the WWW/MAKE/PWA mobile structure: Expo Router tabs, real API hooks (health/projects/materials), shared client, build/serve scripts. Typechecks cleanly.
 - **ADDED:** `vercel.json` and `.env.example`.
+
+## 2026-07-09 Route Audit (chief-of-staff agent)
+- **Frontend**: `artifacts/solaraforge-web` (the Vercel build target — NOT `mockup-sandbox`). 11 routes (wouter), no auth gate, base `/`.
+- **Routes**: 11/11 pass headless crawl — all render real content (Mission Control, Widget Workflow, Habitat Projects, Materials Library, Design Toolkit, Moodboard Studio, Showcase, Settings, About) with **0 console errors, 0 page errors, 0 missing chunks**. `/dashboard` renders a graceful "Off the map, friend." fallback (catch-all) — not a crash.
+- **Build**: `cd artifacts/solaraforge-web && pnpm build` passes (vite, 6.83s, dist/public + PWA service worker).
+- **Verdict**: UI robust, no code fixes required. Any `/api/*` 500s are backend/Postgres down (not running locally) — environmental, not code bugs.
