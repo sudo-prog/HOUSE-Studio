@@ -13,6 +13,8 @@ import { Search, TreePine, Sparkles, Plus, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { asArray } from "@/lib/safe";
+import type { Project } from "@workspace/api-client-react";
 import ProjectWizard from "@/components/wizard/ProjectWizard";
 import { Link } from "wouter";
 
@@ -102,7 +104,8 @@ const TEMPLATES = [
 ];
 
 export default function ProjectsList() {
-  const { data: projects, isLoading } = useListProjects();
+  const { data: projectsRaw, isLoading } = useListProjects();
+  const projects = asArray<Project>(projectsRaw);
   const [search, setSearch] = useState("");
   const [biomeFilter, setBiomeFilter] = useState("All Biomes");
   const [phaseFilter, setPhaseFilter] = useState("All Phases");

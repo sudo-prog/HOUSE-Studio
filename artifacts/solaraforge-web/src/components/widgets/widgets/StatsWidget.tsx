@@ -1,6 +1,8 @@
 import { useListProjects, useGetProjectStats } from "@workspace/api-client-react";
 import { Sun, Leaf, Droplets, TreePine } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { asArray } from "@/lib/safe";
+import type { Project } from "@workspace/api-client-react";
 
 export default function StatsWidget() {
   const { data: projects } = useListProjects();
@@ -8,7 +10,10 @@ export default function StatsWidget() {
 
   const totalCarbon = stats?.totalCarbonSaved ?? 0;
   const avgSolarScore = Number(stats?.avgSolarScore ?? 0);
-  const totalWater = projects?.reduce((acc, p) => acc + (p.waterHarvesting ?? 0), 0) ?? 0;
+  const totalWater = asArray<Project>(projects).reduce(
+    (acc, p) => acc + (p.waterHarvesting ?? 0),
+    0,
+  );
 
   const items = [
     { label: "Projects", value: stats?.totalProjects ?? 0, icon: TreePine, color: "text-primary", bg: "bg-primary/10" },

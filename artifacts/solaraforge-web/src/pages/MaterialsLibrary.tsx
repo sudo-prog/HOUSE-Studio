@@ -6,6 +6,8 @@ import { Database, Search, Leaf, ArrowUpDown, GitCompareArrows, X, Star, Clock }
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { asArray } from "@/lib/safe";
+import type { Material } from "@workspace/api-client-react";
 
 import { cn } from "@/lib/utils";
 
@@ -71,12 +73,12 @@ export default function MaterialsLibrary() {
     );
   };
 
-  const { data: materials, isLoading } = useListMaterials({
+  const { data: materialsRaw, isLoading } = useListMaterials({
     category: category === "All" ? undefined : category,
   });
 
   const filteredMaterials = useMemo(() => {
-    let list = materials ?? [];
+    let list = asArray<Material>(materialsRaw);
 
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -114,21 +116,21 @@ export default function MaterialsLibrary() {
     }
 
     return list;
-  }, [materials, search, onlyNegative, onlyFavorites, favoriteIds, sort]);
+  }, [materialsRaw, search, onlyNegative, onlyFavorites, favoriteIds, sort]);
 
-  const negativeCount = (materials ?? []).filter(m => m.embodiedCarbon < 0).length;
+  const negativeCount = asArray<Material>(materialsRaw).filter(m => m.embodiedCarbon < 0).length;
 
   return (
     <div className="space-y-6 pb-20 md:pb-8">
       {/* Recently Viewed strip */}
-      {recentlyViewedIds.length > 0 && materials && (
+      {recentlyViewedIds.length > 0 && materialsRaw && (
         <div className="space-y-2">
           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
             <Clock className="h-3 w-3" /> Recently Viewed
           </p>
           <div className="flex gap-2 overflow-x-auto pb-1">
             {recentlyViewedIds
-              .map(id => materials.find(m => m.id === id))
+              .map(id => asArray<Material>(materialsRaw).find(m => m.id === id))
               .filter(Boolean)
               .map(m => m!)
               .map(m => (
@@ -157,9 +159,9 @@ export default function MaterialsLibrary() {
           <h1 className="font-serif text-4xl font-bold">Materials Library</h1>
           <p className="text-muted-foreground mt-1">
             Sustainably sourced, carbon-negative building blocks.
-            {materials && (
+            {materialsRaw && (
               <span className="ml-2 text-xs text-green-700 font-semibold">
-                {negativeCount} carbon-negative of {materials.length}
+                {negativeCount} carbon-negative of {asArray<Material>(materialsRaw).length}
               </span>
             )}
           </p>
@@ -337,7 +339,7 @@ export default function MaterialsLibrary() {
           </span>
           <div className="flex gap-1">
             {compareIds.map(id => {
-              const m = (materials ?? []).find(x => x.id === id);
+              const m = asArray<Material>(materialsRaw).find(x => x.id === id);
               return m ? (
                 <Badge key={id} variant="outline" className="text-[10px] gap-1 pr-1">
                   {m.name}
@@ -369,7 +371,7 @@ export default function MaterialsLibrary() {
 
       {/* Compare drawer */}
       <MaterialCompareDrawer
-        materials={(materials ?? []).filter(m => compareIds.includes(m.id))}
+        materials={asArray<Material>(materialsRaw).filter(m => compareIds.includes(m.id))}
         open={compareOpen}
         onOpenChange={setCompareOpen}
         onRemove={id => {

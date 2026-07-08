@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { asArray } from "@/lib/safe";
+import type { Project } from "@workspace/api-client-react";
 
 const PHASE_COLORS: Record<string, string> = {
   concept: "bg-purple-100 text-purple-700",
@@ -15,7 +17,8 @@ const PHASE_COLORS: Record<string, string> = {
 };
 
 export default function ProjectsWidget() {
-  const { data: projects, isLoading } = useListProjects();
+  const projects = asArray<Project>(useListProjects().data);
+  const { isLoading } = useListProjects();
 
   return (
     <div className="flex flex-col h-full gap-3">

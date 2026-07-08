@@ -6,6 +6,8 @@ import { useListProjects } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { Globe, Leaf, Sun, Droplets, ArrowRight, Star, TreePine, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { asArray } from "@/lib/safe";
+import type { Project } from "@workspace/api-client-react";
 
 const FEATURED = [
   {
@@ -124,11 +126,12 @@ const STATS = [
 const ALL_BIOMES = ["All", ...Array.from(new Set(FEATURED.map(f => f.biome)))];
 
 export default function Showcase() {
-  const { data: projects } = useListProjects();
+  const { data: projectsRaw } = useListProjects();
+  const projects = asArray<Project>(projectsRaw);
   const [biomeFilter, setBiomeFilter] = useState("All");
   const [onlyNegative, setOnlyNegative] = useState(false);
 
-  const liveProjects = (projects ?? []).filter(p => p.phase === "complete" || p.phase === "build");
+  const liveProjects = projects.filter(p => p.phase === "complete" || p.phase === "build");
 
   const filtered = useMemo(() => {
     return FEATURED.filter(b => {

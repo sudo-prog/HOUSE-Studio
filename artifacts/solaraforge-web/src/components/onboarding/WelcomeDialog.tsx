@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { TreePine, Package, Wand2, BarChart3, ArrowRight } from "lucide-react";
@@ -57,6 +57,10 @@ export default function WelcomeDialog() {
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) dismiss(); }}>
       <DialogContent className="max-w-lg p-0 overflow-hidden gap-0">
+        <DialogTitle className="sr-only">Welcome to SolaraForge</DialogTitle>
+        <DialogDescription className="sr-only">
+          Your solarpunk habitat toolkit — design, calculate, and build carbon-negative homes.
+        </DialogDescription>
         {/* Hero */}
         <div className="bg-primary px-8 py-8 text-primary-foreground space-y-2">
           <div className="flex items-center gap-3 mb-3">

@@ -7,6 +7,8 @@ import {
   useListMaterials,
 } from "@workspace/api-client-react";
 import AICollaborator from "@/components/ai/AICollaborator";
+import { asArray } from "@/lib/safe";
+import type { Material } from "@workspace/api-client-react";
 import { useParams, Link } from "wouter";
 import { 
   Sun, 
@@ -274,10 +276,10 @@ export default function ProjectDetail() {
 }
 
 function SavedMaterialsPanel({ projectId }: { projectId: number }) {
-  const { data: allMaterials } = useListMaterials({});
+  const { data: allMaterialsRaw } = useListMaterials({});
   const [savedIds, setSavedIds] = useState<number[]>(() => getProjectMaterials(projectId));
 
-  const savedMaterials = (allMaterials ?? []).filter(m => savedIds.includes(m.id));
+  const savedMaterials = asArray<Material>(allMaterialsRaw).filter(m => savedIds.includes(m.id));
 
   const remove = (materialId: number) => {
     removeMaterialFromProject(projectId, materialId);
