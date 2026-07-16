@@ -77,9 +77,9 @@ function Router() {
   }, [handleGlobalKey]);
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
+    <div className="flex min-h-screen bg-background text-foreground overflow-x-hidden">
       <Sidebar onOpenSearch={() => setCmdOpen(true)} />
-      <div className="flex-1 md:ml-64 flex flex-col">
+      <div className="flex-1 md:ml-64 flex flex-col min-w-0">
         <MobileNav onOpenSearch={() => setCmdOpen(true)} />
         <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full">
           <Switch>

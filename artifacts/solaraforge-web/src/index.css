@@ -387,3 +387,15 @@
     inset: -1px;
   }
 }
+
+/* Mobile hardening: prevent horizontal overflow, fix table overflow, enforce 44px tap-target sizing (MOBILE-UI-STANDARD T-1) */
+html, body { max-width: 100%; overflow-x: clip; }
+
+@media (max-width: 767px), (pointer: coarse) {
+  table { table-layout: fixed; width: 100% !important; }
+  table th, table td { word-break: break-word; overflow-wrap: anywhere; white-space: normal; }
+  button, a[role="button"], [role="button"], input[type="button"], input[type="submit"], .btn, [class*="btn"], [class*="button"], [class*="nav-item"], [class*="toolbar"] [class*="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
