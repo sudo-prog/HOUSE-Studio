@@ -398,4 +398,23 @@ html, body { max-width: 100%; overflow-x: clip; }
     min-height: 44px;
     min-width: 44px;
   }
+  /* Inline anchors (e.g. wouter <Link> wrapping a <Button>) are display:inline by
+   * default, and min-height/min-width are IGNORED on inline elements. Promote them to
+   * inline-flex so the 44px tap-target rule above actually applies (MOBILE-UI-STANDARD T-1).
+   * Tailwind's own .flex/.inline-flex utilities win on specificity where present. */
+  a { display: inline-flex; align-items: center; }
+}
+
+/* React Flow attribution link is a tiny <a> (~14px) pinned bottom-right. Give it a
+ * >=44px hit area without enlarging visible text (MOBILE-UI-STANDARD T-1). Hide the
+ * minimap on mobile so the enlarged attribution doesn't cover it. */
+@media (max-width: 767px), (pointer: coarse) {
+  .react-flow__attribution-link {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+  .react-flow__minimap { display: none; }
 }
