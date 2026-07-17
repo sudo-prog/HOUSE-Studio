@@ -79,3 +79,7 @@ Architecture decisions, file structure, API patterns, and known issues.
 - **Routes**: 11/11 pass headless crawl — all render real content (Mission Control, Widget Workflow, Habitat Projects, Materials Library, Design Toolkit, Moodboard Studio, Showcase, Settings, About) with **0 console errors, 0 page errors, 0 missing chunks**. `/dashboard` renders a graceful "Off the map, friend." fallback (catch-all) — not a crash.
 - **Build**: `cd artifacts/solaraforge-web && pnpm build` passes (vite, 6.83s, dist/public + PWA service worker).
 - **Verdict**: UI robust, no code fixes required. Any `/api/*` 500s are backend/Postgres down (not running locally) — environmental, not code bugs.
+## Mobile UI Compliance (MOBILE-UI-STANDARD.md)
+- **Status:** PASS (live: house-studio-eight.vercel.app)
+- **Verified:** 2026-07-17 via /tmp/mobile_audit.mjs @390x844 (tap-target >=44px T-1, overflow, safe-area, console errors)
+- **T-1 fix:** enforce 44x44px on touch/coarse + <=767px; backend API queries gated behind DEV||VITE_API_ENABLED to silence 404s on static Vercel deploy.
